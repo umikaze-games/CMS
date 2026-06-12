@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  background: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  color: #172033;
+  background: #ffffff;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: #0891b2;
+  color: white;
+}
+
+.notice-editor,
+.notice-rich-body {
+  color: #172033;
+}
+
+.notice-editor p,
+.notice-rich-body p {
+  margin: 0 0 1rem;
+}
+
+.notice-editor img,
+.notice-rich-body img,
+.notice-inline-image {
+  max-width: 100%;
+  max-height: 520px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.notice-table-scroll {
+  display: block;
+  min-width: 220px;
+  min-height: 72px;
+  overflow: auto;
+  margin: 1rem 0;
+}
+
+.notice-editor .notice-table-scroll {
+  max-width: none;
+  resize: both;
+  border-radius: 8px;
+  outline: 1px dashed transparent;
+}
+
+.notice-editor .notice-table-scroll:hover,
+.notice-editor .notice-table-scroll:focus-within {
+  outline-color: #67e8f9;
+}
+
+.notice-rich-body .notice-table-scroll {
+  max-width: 100%;
+  resize: none;
+}
+
+.notice-rich-table,
+.notice-editor table,
+.notice-rich-body table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #ffffff;
+}
+
+.notice-rich-table td,
+.notice-rich-table th,
+.notice-editor td,
+.notice-editor th,
+.notice-rich-body td,
+.notice-rich-body th {
+  min-width: 96px;
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
+  vertical-align: top;
+}
+
+.notice-editor td,
+.notice-editor th {
+  resize: both;
+  overflow: auto;
+}
+
+.notice-editor .notice-selected-cell {
+  outline: 2px solid #06b6d4;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 9999px rgba(34, 211, 238, 0.12);
+}
+
+.notice-rich-body td,
+.notice-rich-body th {
+  resize: none;
+}
