@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { FileText, LogOut, Settings, Shield } from "lucide-react";
+import { FileText, Settings, Shield } from "lucide-react";
 import type { GameTitle } from "@/lib/types";
 import { AdminCreateLink } from "@/components/admin-create-link";
 import { AdminGameSwitcher } from "@/components/admin-game-switcher";
+import { AdminLogoutButton } from "@/components/admin-logout-button";
 
 const cmsLabel = "CMS \u7ba1\u7406";
 const noticeLabel = "\u304a\u77e5\u3089\u305b\u7ba1\u7406";
@@ -48,13 +49,7 @@ export function AdminShell({ children, currentGameId, games = [] }: AdminShellPr
           <Settings size={18} />
           {settingsLabel}
         </Link>
-        <Link
-          href="/admin/login"
-          className="absolute bottom-6 left-5 right-5 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-muted shadow-sm hover:text-ink"
-        >
-          <LogOut size={18} />
-          {logoutLabel}
-        </Link>
+        <AdminLogoutButton label={logoutLabel} />
       </aside>
       <div className="md:pl-72">
         <header className="border-b border-line bg-white/92 px-5 py-4 shadow-sm backdrop-blur md:hidden">
