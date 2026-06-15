@@ -42,6 +42,12 @@ test("validates configured admin credentials exactly", () => {
   assert.equal(auth.verifyAdminCredentials("admin@example.com", "secret", {}), false);
 });
 
+test("does not require secure cookies unless explicitly enabled", () => {
+  assert.equal(auth.isAdminCookieSecure({}), false);
+  assert.equal(auth.isAdminCookieSecure({ ADMIN_COOKIE_SECURE: "false" }), false);
+  assert.equal(auth.isAdminCookieSecure({ ADMIN_COOKIE_SECURE: "true" }), true);
+});
+
 test("creates verifiable session tokens and rejects tampering", async () => {
   const token = await auth.createAdminSessionToken({
     email: "admin@example.com",

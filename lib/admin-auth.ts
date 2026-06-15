@@ -5,6 +5,7 @@ type AdminAuthEnv = {
   ADMIN_EMAIL?: string;
   ADMIN_PASSWORD?: string;
   ADMIN_SESSION_SECRET?: string;
+  ADMIN_COOKIE_SECURE?: string;
 };
 
 type SessionTokenOptions = {
@@ -38,6 +39,10 @@ export function verifyAdminCredentials(
   }
 
   return email === env.ADMIN_EMAIL && password === env.ADMIN_PASSWORD;
+}
+
+export function isAdminCookieSecure(env: AdminAuthEnv = process.env as AdminAuthEnv) {
+  return env.ADMIN_COOKIE_SECURE === "true";
 }
 
 export async function createAdminSessionToken({

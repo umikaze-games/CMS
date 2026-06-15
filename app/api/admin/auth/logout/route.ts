@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ADMIN_SESSION_COOKIE } from "@/lib/admin-auth";
+import { ADMIN_SESSION_COOKIE, isAdminCookieSecure } from "@/lib/admin-auth";
 
 export async function POST() {
   const response = NextResponse.json({ ok: true });
@@ -9,7 +9,7 @@ export async function POST() {
     value: "",
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: isAdminCookieSecure(),
     maxAge: 0,
     path: "/"
   });
