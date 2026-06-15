@@ -11,6 +11,8 @@ import {
 import { AdminNoticeReviewDialog } from "@/components/admin-notice-review-dialog";
 import { AdminRichTextEditor } from "@/components/admin-rich-text-editor";
 import { AdminSelect } from "@/components/admin-select";
+import { getSaveResponseMessage } from "@/lib/admin-save-response";
+import { validateAdminBannerFile } from "@/lib/admin-upload";
 import { loadGameTitles, subscribeGameTitlesChange } from "@/lib/admin-game-titles";
 import { addDaysLocalDateTime, formatDateTimeLocal } from "@/lib/date";
 import { getNoticeTemplate } from "@/lib/notice-templates";
@@ -150,6 +152,16 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
 
     const selectedCategory = categories.find((category) => category.id === categoryValue);
     const uploadedBanner = formData.get("banner_image");
+    const bannerError =
+      uploadedBanner instanceof File && uploadedBanner.size > 0
+        ? validateAdminBannerFile(uploadedBanner)
+        : null;
+
+    if (bannerError) {
+      setMessage(bannerError);
+      return;
+    }
+
     const bannerUrl =
       uploadedBanner instanceof File && uploadedBanner.size > 0
         ? await fileToDataUrl(uploadedBanner)
@@ -178,10 +190,8 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
         method,
         body: formData
       });
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.message ?? labels.saveError);
+        throw new Error(await getSaveResponseMessage(response));
       }
 
       router.push(`/admin/notices?game=${formData.get("game_id")}`);

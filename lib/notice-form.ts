@@ -1,5 +1,6 @@
 import type { NoticeStatus } from "@/lib/types";
 import { addDaysLocalDateTime } from "@/lib/date";
+import { validateAdminBannerFile } from "@/lib/admin-upload";
 
 export function readNoticeFormData(formData: FormData) {
   const gameId = String(formData.get("game_id") ?? "").trim();
@@ -13,6 +14,7 @@ export function readNoticeFormData(formData: FormData) {
   const sortOrder = Number(formData.get("sort_order") ?? 50);
   const isPinned = formData.get("is_pinned") === "on" || formData.get("is_pinned") === "true";
   const banner = formData.get("banner_image");
+  const bannerFile = banner instanceof File && banner.size > 0 ? banner : null;
 
   if (!gameId || !title || !body || !categoryId || !publishAt) {
     throw new Error(
@@ -31,6 +33,11 @@ export function readNoticeFormData(formData: FormData) {
     );
   }
 
+  const bannerError = validateAdminBannerFile(bannerFile);
+  if (bannerError) {
+    throw new Error(bannerError);
+  }
+
   return {
     gameId,
     title,
@@ -42,7 +49,7 @@ export function readNoticeFormData(formData: FormData) {
     isPinned,
     newBadgeStartAt: resolvedNewBadgeStartAt,
     newBadgeEndAt: resolvedNewBadgeEndAt,
-    banner: banner instanceof File && banner.size > 0 ? banner : null
+    banner: bannerFile
   };
 }
 
