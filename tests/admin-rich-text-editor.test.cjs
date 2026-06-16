@@ -53,6 +53,21 @@ test("rich text emoji picker does not toggle closed from the opener", () => {
   assert.doesNotMatch(source, /setShowEmojiMenu\(\(current\) => !current\)/);
 });
 
+test("rich text editor blank clicks cannot open the emoji picker", () => {
+  assert.match(source, /const editorPointerDownUntil = useRef\(0\)/);
+
+  const editorPointerDownBody =
+    source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.match(editorPointerDownBody, /editorPointerDownUntil\.current = Date\.now\(\) \+ 500/);
+
+  const openEmojiPickerBody =
+    source.match(/function openEmojiPicker\(\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.match(openEmojiPickerBody, /if \(Date\.now\(\) < editorPointerDownUntil\.current\) \{\s*return;\s*\}/);
+  assert.match(openEmojiPickerBody, /setShowEmojiMenu\(true\)/);
+});
+
 test("rich text emoji picker closes after inserting a choice", () => {
   const insertEmojiBody = source.match(/function insertEmoji\(value: string\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
   assert.match(insertEmojiBody, /runCommand\("insertText", value\)/);
