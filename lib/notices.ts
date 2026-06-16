@@ -1,5 +1,6 @@
 import { gameTitles, noticeCategories } from "@/lib/mock-data";
 import { getLocalNotices } from "@/lib/local-notice-store";
+import { parseNoticeDateTime } from "@/lib/date";
 import { supabase } from "@/lib/supabase";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { Notice, NoticeWithCategory } from "@/lib/types";
@@ -26,7 +27,7 @@ function byPublicOrder(a: NoticeWithCategory, b: NoticeWithCategory) {
     return a.sortOrder - b.sortOrder;
   }
 
-  return new Date(b.publishAt).getTime() - new Date(a.publishAt).getTime();
+  return parseNoticeDateTime(b.publishAt).getTime() - parseNoticeDateTime(a.publishAt).getTime();
 }
 
 export function getCategories() {
@@ -128,7 +129,7 @@ export async function getPublicNotices(categoryId?: string, gameId?: string) {
   return localNotices
     .filter((notice) => notice.status === "published")
     .filter((notice) => (gameId ? notice.gameId === gameId : true))
-    .filter((notice) => new Date(notice.publishAt).getTime() <= now)
+    .filter((notice) => parseNoticeDateTime(notice.publishAt).getTime() <= now)
     .filter((notice) => (categoryId ? notice.categoryId === categoryId : true))
     .map(withCategory)
     .sort(byPublicOrder);

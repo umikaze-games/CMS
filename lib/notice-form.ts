@@ -1,5 +1,5 @@
 import type { NoticeStatus } from "@/lib/types";
-import { addDaysLocalDateTime } from "@/lib/date";
+import { addDaysLocalDateTime, normalizeJapanDateTime } from "@/lib/date";
 import { validateAdminBannerFile } from "@/lib/admin-upload";
 
 export function readNoticeFormData(formData: FormData) {
@@ -22,8 +22,11 @@ export function readNoticeFormData(formData: FormData) {
     );
   }
 
-  const resolvedNewBadgeStartAt = newBadgeStartAt || publishAt;
-  const resolvedNewBadgeEndAt = newBadgeEndAt || addDaysLocalDateTime(resolvedNewBadgeStartAt, 7);
+  const normalizedPublishAt = normalizeJapanDateTime(publishAt);
+  const resolvedNewBadgeStartAt = normalizeJapanDateTime(newBadgeStartAt || publishAt);
+  const resolvedNewBadgeEndAt = normalizeJapanDateTime(
+    newBadgeEndAt || addDaysLocalDateTime(resolvedNewBadgeStartAt, 7)
+  );
 
   if (
     new Date(resolvedNewBadgeStartAt).getTime() >= new Date(resolvedNewBadgeEndAt).getTime()
@@ -44,7 +47,7 @@ export function readNoticeFormData(formData: FormData) {
     body,
     categoryId,
     status,
-    publishAt,
+    publishAt: normalizedPublishAt,
     sortOrder: Number.isFinite(sortOrder) ? sortOrder : 50,
     isPinned,
     newBadgeStartAt: resolvedNewBadgeStartAt,
