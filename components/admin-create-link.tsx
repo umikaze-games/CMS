@@ -11,7 +11,8 @@ type AdminCreateLinkProps = {
 
 export function AdminCreateLink({ fallbackGameId, label }: AdminCreateLinkProps) {
   const searchParams = useSearchParams();
-  const gameId = searchParams.get("game") || fallbackGameId || "";
+  const searchGameId = searchParams.get("game");
+  const gameId = searchGameId && searchGameId !== "all" ? searchGameId : fallbackGameId || "";
   const query = gameId ? `?game=${gameId}` : "";
 
   return (

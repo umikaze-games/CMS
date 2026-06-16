@@ -367,7 +367,9 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                 <td className="px-4 py-4">
                   <div className="flex justify-center gap-2">
                     <Link
-                      href={`/admin/notices/${notice.id}/edit?game=${currentGameId}`}
+                      href={`/admin/notices/${notice.id}/edit?game=${
+                        currentGameId === "all" ? notice.gameId : currentGameId
+                      }`}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-white text-muted hover:text-ink"
                       aria-label={labels.edit}
                       title={labels.edit}
@@ -655,5 +657,11 @@ function DropIndicator({ position }: { position: "before" | "after" }) {
 }
 
 function useSortableNotices(initial: NoticeWithCategory[]) {
-  return useState(initial);
+  const [items, setItems] = useState(initial);
+
+  useEffect(() => {
+    setItems(initial);
+  }, [initial]);
+
+  return [items, setItems] as const;
 }

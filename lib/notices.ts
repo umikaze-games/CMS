@@ -179,15 +179,20 @@ export async function getNoticeById(id: string) {
   return notice ? withCategory(notice) : null;
 }
 
-export async function getAdminNotices(gameId = getDefaultGameId()) {
+export async function getAdminNotices(gameId?: string) {
   if (supabaseAdmin) {
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("notices")
       .select(
         "id,game_id,category_id,title,body,banner_image,status,is_pinned,publish_at,new_badge_start_at,new_badge_end_at,created_at,updated_at,sort_order,category:notice_categories(id,name,color,sort_order)"
       )
-      .eq("game_id", gameId)
       .order("updated_at", { ascending: false });
+
+    if (gameId) {
+      query = query.eq("game_id", gameId);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       return data.map((row: any) => ({
@@ -200,7 +205,7 @@ export async function getAdminNotices(gameId = getDefaultGameId()) {
   const localNotices = await getLocalNotices();
 
   return localNotices
-    .filter((notice) => notice.gameId === gameId)
+    .filter((notice) => (gameId ? notice.gameId === gameId : true))
     .map(withCategory)
     .sort(byPublicOrder);
 }

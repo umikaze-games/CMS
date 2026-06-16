@@ -7,18 +7,29 @@ import { loadGameTitles, subscribeGameTitlesChange } from "@/lib/admin-game-titl
 import type { GameTitle } from "@/lib/types";
 
 const gameLabel = "\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb";
+const allGamesLabel = "\u5168\u90e8";
+const allGamesValue = "all";
 
 type AdminGameSwitcherProps = {
   games: GameTitle[];
   currentGameId?: string;
+  includeAllGames?: boolean;
 };
 
-export function AdminGameSwitcher({ games, currentGameId }: AdminGameSwitcherProps) {
+export function AdminGameSwitcher({
+  games,
+  currentGameId,
+  includeAllGames = false
+}: AdminGameSwitcherProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [gameItems, setGameItems] = useState(games);
   const value = useMemo(() => {
+    if (includeAllGames && currentGameId === allGamesValue) {
+      return allGamesValue;
+    }
+
     if (currentGameId && gameItems.some((game) => game.id === currentGameId)) {
       return currentGameId;
     }
@@ -55,7 +66,10 @@ export function AdminGameSwitcher({ games, currentGameId }: AdminGameSwitcherPro
         name="sidebar_game_id"
         value={value}
         onChange={handleChange}
-        options={gameItems.map((game) => ({ label: game.name, value: game.id }))}
+        options={[
+          ...(includeAllGames ? [{ label: allGamesLabel, value: allGamesValue }] : []),
+          ...gameItems.map((game) => ({ label: game.name, value: game.id }))
+        ]}
       />
     </div>
   );

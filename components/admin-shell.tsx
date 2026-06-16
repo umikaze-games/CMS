@@ -15,10 +15,18 @@ type AdminShellProps = {
   children: React.ReactNode;
   currentGameId?: string;
   games?: GameTitle[];
+  includeAllGames?: boolean;
 };
 
-export function AdminShell({ children, currentGameId, games = [] }: AdminShellProps) {
+export function AdminShell({
+  children,
+  currentGameId,
+  games = [],
+  includeAllGames = false
+}: AdminShellProps) {
   const query = currentGameId ? `?game=${currentGameId}` : "";
+  const createFallbackGameId = currentGameId === "all" ? undefined : currentGameId;
+  const settingsQuery = createFallbackGameId ? `?game=${createFallbackGameId}` : "";
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.10),transparent_28%),linear-gradient(180deg,#f8fbff,#edf3f8)]">
@@ -30,7 +38,11 @@ export function AdminShell({ children, currentGameId, games = [] }: AdminShellPr
           {cmsLabel}
         </Link>
 
-        <AdminGameSwitcher games={games} currentGameId={currentGameId} />
+        <AdminGameSwitcher
+          games={games}
+          currentGameId={currentGameId}
+          includeAllGames={includeAllGames}
+        />
 
         <nav className="mt-5 grid gap-2 text-sm font-bold">
           <Link
@@ -40,10 +52,10 @@ export function AdminShell({ children, currentGameId, games = [] }: AdminShellPr
             <FileText size={18} />
             {noticeLabel}
           </Link>
-          <AdminCreateLink fallbackGameId={currentGameId} label={createLabel} />
+          <AdminCreateLink fallbackGameId={createFallbackGameId} label={createLabel} />
         </nav>
         <Link
-          href={`/admin/settings${query}`}
+          href={`/admin/settings${settingsQuery}`}
           className="absolute bottom-20 left-5 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink hover:bg-cyan-50 hover:text-cyan-700"
         >
           <Settings size={18} />

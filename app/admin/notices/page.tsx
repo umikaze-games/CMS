@@ -22,11 +22,12 @@ type AdminNoticesPageProps = {
 export default async function AdminNoticesPage({ searchParams }: AdminNoticesPageProps) {
   const params = await searchParams;
   const games = await getGameTitles();
-  const currentGameId = params.game ?? getDefaultGameId(games);
-  const notices = await getAdminNotices(currentGameId);
+  const currentGameId = params.game === "all" ? "all" : params.game ?? getDefaultGameId(games);
+  const createGameId = currentGameId === "all" ? getDefaultGameId(games) : currentGameId;
+  const notices = await getAdminNotices(currentGameId === "all" ? undefined : currentGameId);
 
   return (
-    <AdminShell games={games} currentGameId={currentGameId}>
+    <AdminShell games={games} currentGameId={currentGameId} includeAllGames>
       <div className="mb-6 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-soft backdrop-blur">
         <div className="flex flex-col gap-4 md:flex-row md:items-stretch md:justify-between">
           <div>
@@ -37,7 +38,7 @@ export default async function AdminNoticesPage({ searchParams }: AdminNoticesPag
           <div className="flex flex-col items-start gap-3 md:items-end md:justify-between">
             <AdminCurrentClock />
             <Link
-              href={`/admin/notices/new?game=${currentGameId}`}
+              href={`/admin/notices/new?game=${createGameId}`}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-slate-700"
             >
               <Plus size={18} />
