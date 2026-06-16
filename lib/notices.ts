@@ -1,4 +1,5 @@
 import { gameTitles, noticeCategories } from "@/lib/mock-data";
+import { getLocalCategories } from "@/lib/local-category-store";
 import { getLocalGameTitles } from "@/lib/local-game-title-store";
 import { getLocalNotices } from "@/lib/local-notice-store";
 import { parseNoticeDateTime } from "@/lib/date";
@@ -6,8 +7,10 @@ import { supabase } from "@/lib/supabase";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { Notice, NoticeWithCategory } from "@/lib/types";
 
-function withCategory(notice: Notice): NoticeWithCategory {
-  const category = noticeCategories.find((item) => item.id === notice.categoryId);
+function withCategory(notice: Notice, categories = getCategories()): NoticeWithCategory {
+  const category =
+    categories.find((item) => item.id === notice.categoryId) ??
+    categories.find((item) => item.id === "other");
 
   if (!category) {
     throw new Error(`Category not found: ${notice.categoryId}`);
@@ -109,7 +112,7 @@ async function getDbCategories() {
 }
 
 export async function getPublicCategories() {
-  return (await getDbCategories()) ?? getCategories();
+  return (await getDbCategories()) ?? (await getLocalCategories());
 }
 
 export async function getPublicNotices(categoryId?: string, gameId?: string) {
@@ -145,14 +148,14 @@ export async function getPublicNotices(categoryId?: string, gameId?: string) {
 
   const now = Date.now();
 
-  const localNotices = await getLocalNotices();
+  const [localNotices, categories] = await Promise.all([getLocalNotices(), getLocalCategories()]);
 
   return localNotices
     .filter((notice) => notice.status === "published")
     .filter((notice) => (gameId ? notice.gameId === gameId : true))
     .filter((notice) => parseNoticeDateTime(notice.publishAt).getTime() <= now)
     .filter((notice) => (categoryId ? notice.categoryId === categoryId : true))
-    .map(withCategory)
+    .map((notice) => withCategory(notice, categories))
     .sort(byPublicOrder);
 }
 
@@ -174,9 +177,9 @@ export async function getNoticeById(id: string) {
     }
   }
 
-  const localNotices = await getLocalNotices();
+  const [localNotices, categories] = await Promise.all([getLocalNotices(), getLocalCategories()]);
   const notice = localNotices.find((item) => item.id === id);
-  return notice ? withCategory(notice) : null;
+  return notice ? withCategory(notice, categories) : null;
 }
 
 export async function getAdminNotices(gameId?: string) {
@@ -202,10 +205,10 @@ export async function getAdminNotices(gameId?: string) {
     }
   }
 
-  const localNotices = await getLocalNotices();
+  const [localNotices, categories] = await Promise.all([getLocalNotices(), getLocalCategories()]);
 
   return localNotices
     .filter((notice) => (gameId ? notice.gameId === gameId : true))
-    .map(withCategory)
+    .map((notice) => withCategory(notice, categories))
     .sort(byPublicOrder);
 }

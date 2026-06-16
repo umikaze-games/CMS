@@ -7,6 +7,7 @@ dist
 *.log
 .local-notices.json
 .local-game-titles.json
+.local-categories.json
 .tmp-tests
 .tmp-tests-banner-*
 .tmp-tests-local-notice-*

@@ -76,6 +76,26 @@ export async function deleteLocalNoticesByGameIds(gameIds: string[]) {
   await writeStore(current.filter((item) => !deleteIds.has(item.gameId)));
 }
 
+export async function reassignLocalNoticesByCategoryIds(
+  categoryIds: string[],
+  fallbackCategoryId = "other"
+) {
+  if (categoryIds.length === 0) {
+    return;
+  }
+
+  const current = await readStore();
+  const now = new Date().toISOString();
+  const deleteIds = new Set(categoryIds);
+  await writeStore(
+    current.map((item) =>
+      deleteIds.has(item.categoryId)
+        ? { ...item, categoryId: fallbackCategoryId, updatedAt: now }
+        : item
+    )
+  );
+}
+
 async function readStore() {
   try {
     const content = await fs.readFile(storePath, "utf8");

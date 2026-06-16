@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { FileText, KeyRound, Pencil, Plus, Save, ShieldCheck, Trash2, UserPlus, X } from "lucide-react";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
 import { AdminSelect } from "@/components/admin-select";
+import { createCategoryId, normalizeCategories, otherCategoryId } from "@/lib/admin-categories";
 import {
   createGameId,
   dedupeGames,
@@ -42,6 +43,8 @@ const labels = {
   categoryName: "\u30ab\u30c6\u30b4\u30ea\u30fc\u540d",
   color: "\u8272",
   addCategory: "\u30ab\u30c6\u30b4\u30ea\u30fc\u8ffd\u52a0",
+  categorySaveError:
+    "\u30ab\u30c6\u30b4\u30ea\u30fc\u306e\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
   template: "\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8",
   templateTitle: "\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u7de8\u96c6",
   templateLead:
@@ -54,6 +57,8 @@ const labels = {
   deleteTitle: "\u9805\u76ee\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f",
   deleteDescription:
     "\u3053\u306e\u64cd\u4f5c\u306f\u753b\u9762\u4e0a\u306e\u8a2d\u5b9a\u30ea\u30b9\u30c8\u304b\u3089\u9805\u76ee\u3092\u524a\u9664\u3057\u307e\u3059\u3002",
+  deleteCategoryDescription:
+    "\u3053\u306e\u30ab\u30c6\u30b4\u30ea\u30fc\u3092\u524a\u9664\u3057\u307e\u3059\u3002\u3053\u306e\u30ab\u30c6\u30b4\u30ea\u30fc\u306b\u7d10\u3065\u304f\u304a\u77e5\u3089\u305b\u306f\u300c\u305d\u306e\u4ed6\u300d\u306b\u81ea\u52d5\u3067\u5207\u308a\u66ff\u308f\u308a\u307e\u3059\u3002",
   deleteGameTitle: "\u30b2\u30fc\u30e0\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f",
   deleteGameCascadeDescription:
     "\u3053\u306e\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u3068\u3001\u3053\u306e\u30b2\u30fc\u30e0\u306b\u7d10\u3065\u304f\u304a\u77e5\u3089\u305b\u3092\u3059\u3079\u3066\u524a\u9664\u3057\u307e\u3059\u3002\u5143\u306b\u623b\u305b\u307e\u305b\u3093\u3002\u524a\u9664\u3059\u308b\u306b\u306f\u4e0b\u306e\u5165\u529b\u6b04\u306b\u300c\u78ba\u8a8d\u524a\u9664\u300d\u3068\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
@@ -114,6 +119,7 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
   const [gameMessage, setGameMessage] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState("");
   const [categoryColor, setCategoryColor] = useState("#0891b2");
+  const [categoryMessage, setCategoryMessage] = useState<string | null>(null);
   const [role, setRole] = useState("Admin");
   const [editingTemplateCategory, setEditingTemplateCategory] = useState<NoticeCategory | null>(
     null
@@ -132,6 +138,10 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
     setGameItems(nextGames);
     saveGameTitles(nextGames);
   }, [games]);
+
+  useEffect(() => {
+    setCategoryItems(normalizeCategories(categories));
+  }, [categories]);
 
   async function persistGameItems(nextGames: GameTitle[]) {
     const previousGames = gameItems;
@@ -159,6 +169,31 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
     }
   }
 
+  async function persistCategoryItems(nextCategories: NoticeCategory[]) {
+    const previousCategories = categoryItems;
+    const normalizedCategories = normalizeCategories(nextCategories);
+    setCategoryItems(normalizedCategories);
+
+    try {
+      const response = await fetch("/api/admin/categories", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categories: normalizedCategories })
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(data?.message ?? labels.categorySaveError);
+      }
+
+      setCategoryMessage(null);
+      router.refresh();
+    } catch (error) {
+      setCategoryItems(previousCategories);
+      setCategoryMessage(error instanceof Error ? error.message : labels.categorySaveError);
+    }
+  }
+
   function handleConfirmAction() {
     if (!confirmAction) {
       return;
@@ -183,7 +218,7 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
     }
 
     if (confirmAction.type === "delete-category") {
-      setCategoryItems((current) => current.filter((item) => item.id !== confirmAction.id));
+      void persistCategoryItems(categoryItems.filter((item) => item.id !== confirmAction.id));
     }
 
     if (confirmAction.type === "delete-account") {
@@ -278,6 +313,48 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
     );
     setEditingGame(null);
     setGameMessage(null);
+  }
+
+  function addCategory() {
+    const nextName = categoryName.trim();
+    if (!nextName) {
+      return;
+    }
+
+    void persistCategoryItems([
+      ...categoryItems,
+      {
+        id: createCategoryId(nextName),
+        name: nextName,
+        color: categoryColor,
+        sortOrder: categoryItems.length + 1
+      }
+    ]);
+    setCategoryName("");
+  }
+
+  function updateCategoryName(id: string, name: string) {
+    setCategoryItems((current) =>
+      current.map((item) => (item.id === id ? { ...item, name } : item))
+    );
+  }
+
+  function saveCategoryName(id: string, name: string) {
+    const nextName = name.trim();
+    if (!nextName) {
+      setCategoryItems((current) => normalizeCategories(current));
+      return;
+    }
+
+    void persistCategoryItems(
+      categoryItems.map((item) => (item.id === id ? { ...item, name: nextName } : item))
+    );
+  }
+
+  function saveCategoryColor(id: string, color: string) {
+    void persistCategoryItems(
+      categoryItems.map((item) => (item.id === id ? { ...item, color } : item))
+    );
   }
 
   function openTemplateEditor(category: NoticeCategory) {
@@ -447,25 +524,18 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
           />
           <button
             type="button"
-            onClick={() => {
-              if (!categoryName.trim()) return;
-              setCategoryItems((current) => [
-                ...current,
-                {
-                  id: categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-                  name: categoryName,
-                  color: categoryColor,
-                  sortOrder: current.length + 1
-                }
-              ]);
-              setCategoryName("");
-            }}
+            onClick={addCategory}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-black text-white shadow-[0_16px_34px_rgba(15,23,42,0.16)] hover:bg-slate-800"
           >
             <Plus size={17} />
             {labels.addCategory}
           </button>
         </div>
+        {categoryMessage ? (
+          <div className="mb-3 rounded-xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+            {categoryMessage}
+          </div>
+        ) : null}
         <div className="divide-y divide-slate-100">
           {categoryItems.map((category) => (
             <div
@@ -474,25 +544,14 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
             >
               <input
                 value={category.name}
-                onChange={(event) =>
-                  setCategoryItems((current) =>
-                    current.map((item) =>
-                      item.id === category.id ? { ...item, name: event.target.value } : item
-                    )
-                  )
-                }
+                onChange={(event) => updateCategoryName(category.id, event.target.value)}
+                onBlur={(event) => saveCategoryName(category.id, event.target.value)}
                 className="h-10 rounded-lg border border-line px-3 text-sm font-bold text-ink outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
               />
               <ColorPicker
                 value={category.color}
                 label={labels.color}
-                onChange={(value) =>
-                  setCategoryItems((current) =>
-                    current.map((item) =>
-                      item.id === category.id ? { ...item, color: value } : item
-                    )
-                  )
-                }
+                onChange={(value) => saveCategoryColor(category.id, value)}
               />
               <button
                 type="button"
@@ -503,14 +562,18 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
               >
                 <FileText size={17} />
               </button>
-              <button
-                type="button"
-                onClick={() => setConfirmAction({ type: "delete-category", id: category.id })}
-                className="inline-flex h-9 w-9 items-center justify-center justify-self-end rounded-md text-rose-600 hover:bg-rose-50"
-                aria-label={labels.deleteConfirm}
-              >
-                <Trash2 size={17} />
-              </button>
+              {category.id !== otherCategoryId ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmAction({ type: "delete-category", id: category.id })}
+                  className="inline-flex h-9 w-9 items-center justify-center justify-self-end rounded-md text-rose-600 hover:bg-rose-50"
+                  aria-label={labels.deleteConfirm}
+                >
+                  <Trash2 size={17} />
+                </button>
+              ) : (
+                <span className="h-9 w-9" />
+              )}
             </div>
           ))}
         </div>
@@ -530,7 +593,9 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
             ? `${labels.addGameDescription}\n${confirmAction.name}`
             : confirmAction?.type === "delete-game"
               ? `${labels.deleteGameCascadeDescription}\n${confirmAction.name}`
-            : labels.deleteDescription
+              : confirmAction?.type === "delete-category"
+                ? labels.deleteCategoryDescription
+                : labels.deleteDescription
         }
         confirmLabel={
           confirmAction?.type === "add-game" ? labels.addGameConfirm : labels.deleteConfirm
