@@ -138,6 +138,14 @@ test("rich text editor blank clicks close text adjustment popups", () => {
   assert.match(editorPointerDownBody, /setShowTableMenu\(false\)/);
 });
 
+test("rich text editor mouseup does not re-render toolbar state while focusing text", () => {
+  const editorMouseUpBody =
+    source.match(/function handleEditorMouseUp\(\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.match(editorMouseUpBody, /saveSelection\(\)/);
+  assert.doesNotMatch(editorMouseUpBody, /updateToolbarState\(\)/);
+});
+
 test("rich text image chip opens an image picker", () => {
   assert.match(source, /onClick=\{openImagePicker\}/);
   assert.match(source, /<ImagePlus size=\{16\} \/>/);

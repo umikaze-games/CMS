@@ -1302,7 +1302,6 @@ export function AdminRichTextEditor({
     setIsSelectingCells(false);
     dragStartCellRef.current = null;
     saveSelection();
-    updateToolbarState();
   }
 
   async function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
