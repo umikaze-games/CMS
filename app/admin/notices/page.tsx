@@ -21,8 +21,8 @@ type AdminNoticesPageProps = {
 
 export default async function AdminNoticesPage({ searchParams }: AdminNoticesPageProps) {
   const params = await searchParams;
-  const games = getGameTitles();
-  const currentGameId = params.game ?? getDefaultGameId();
+  const games = await getGameTitles();
+  const currentGameId = params.game ?? getDefaultGameId(games);
   const notices = await getAdminNotices(currentGameId);
 
   return (

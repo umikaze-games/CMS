@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FileText, KeyRound, Pencil, Plus, Save, ShieldCheck, Trash2, UserPlus, X } from "lucide-react";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
@@ -8,7 +9,6 @@ import {
   createGameId,
   dedupeGames,
   hasGameName,
-  loadGameTitles,
   saveGameTitles
 } from "@/lib/admin-game-titles";
 import { getNoticeTemplate, setNoticeTemplate } from "@/lib/notice-templates";
@@ -36,6 +36,8 @@ const labels = {
   editGameSave: "\u5909\u66f4\u3092\u4fdd\u5b58",
   duplicateGame:
     "\u540c\u3058\u30b2\u30fc\u30e0\u540d\u306f\u767b\u9332\u3067\u304d\u307e\u305b\u3093\u3002",
+  gameSaveError:
+    "\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u306e\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
   categories: "\u304a\u77e5\u3089\u305b\u30ab\u30c6\u30b4\u30ea\u30fc\u7de8\u96c6",
   categoryName: "\u30ab\u30c6\u30b4\u30ea\u30fc\u540d",
   color: "\u8272",
@@ -94,6 +96,7 @@ const roleOptions = [
 ];
 
 export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProps) {
+  const router = useRouter();
   const [gameItems, setGameItems] = useState(() => dedupeGames(games));
   const [categoryItems, setCategoryItems] = useState(categories);
   const [accountItems, setAccountItems] = useState<AdminAccount[]>([
@@ -120,12 +123,36 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   useEffect(() => {
-    setGameItems(loadGameTitles(games));
+    const nextGames = dedupeGames(games);
+    setGameItems(nextGames);
+    saveGameTitles(nextGames);
   }, [games]);
 
-  useEffect(() => {
-    saveGameTitles(gameItems);
-  }, [gameItems]);
+  async function persistGameItems(nextGames: GameTitle[]) {
+    const previousGames = gameItems;
+    const normalizedGames = dedupeGames(nextGames);
+    setGameItems(normalizedGames);
+    saveGameTitles(normalizedGames);
+
+    try {
+      const response = await fetch("/api/admin/game-titles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ games: normalizedGames })
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(data?.message ?? labels.gameSaveError);
+      }
+
+      router.refresh();
+    } catch (error) {
+      setGameItems(previousGames);
+      saveGameTitles(previousGames);
+      setGameMessage(error instanceof Error ? error.message : labels.gameSaveError);
+    }
+  }
 
   function handleConfirmAction() {
     if (!confirmAction) {
@@ -136,8 +163,8 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
       if (hasGameName(gameItems, confirmAction.name)) {
         setGameMessage(labels.duplicateGame);
       } else {
-        setGameItems((current) => [
-          ...current,
+        void persistGameItems([
+          ...gameItems,
           { id: createGameId(confirmAction.name), name: confirmAction.name }
         ]);
         setGameName("");
@@ -146,7 +173,7 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
     }
 
     if (confirmAction.type === "delete-game") {
-      setGameItems((current) => current.filter((_, index) => index !== confirmAction.index));
+      void persistGameItems(gameItems.filter((_, index) => index !== confirmAction.index));
       setGameMessage(null);
     }
 
@@ -239,8 +266,8 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
       return;
     }
 
-    setGameItems((current) =>
-      current.map((item, index) =>
+    void persistGameItems(
+      gameItems.map((item, index) =>
         index === editingGame.index ? { ...item, name: nextName } : item
       )
     );

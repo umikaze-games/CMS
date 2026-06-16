@@ -18,6 +18,7 @@
 - 后台登录已接入 `.env.local` 中的管理员账号密码，不再只是 UI 跳转。
 - 后台和 `/api/admin/*` 已通过 middleware 做登录保护。
 - Supabase 未配置时，公告会保存到服务器本地 `.local-notices.json`。
+- Supabase 未配置时，游戏标题会保存到服务器本地 `.local-game-titles.json`。
 - 本地上传图片会保存到 `public/uploads/notices/`，并通过 `/uploads/notices/[file]` 访问。
 
 ## 主要页面
@@ -45,6 +46,7 @@ API:
 - `PATCH /api/admin/notices/[id]`: 状态更新
 - `DELETE /api/admin/notices/[id]`: 删除公告
 - `POST /api/admin/uploads`: 上传正文图片
+- `GET/PUT /api/admin/game-titles`: 读取/保存游戏标题
 
 ## 本地开发
 
@@ -132,6 +134,7 @@ pm2 status
 ## 当前仍需注意
 
 - 如果没有配置 Supabase，公告数据存放在服务器本地 `.local-notices.json`，换服务器或重装前要备份。
+- 如果没有配置 Supabase，游戏标题存放在服务器本地 `.local-game-titles.json`，也要备份。
 - 如果没有配置 Supabase，上传图片存放在 `public/uploads/notices/`，也需要备份。
-- 设置页面里的部分内容仍然依赖浏览器 `localStorage`，多设备协作前需要改成数据库保存。
+- 设置页面里的分类、模板、账号仍有前端本地状态，多设备协作前需要改成数据库保存。
 - 正式长期运营建议接入 Supabase PostgreSQL 和 Supabase Storage，避免只依赖服务器本地文件。

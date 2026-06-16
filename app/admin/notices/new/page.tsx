@@ -17,8 +17,8 @@ type AdminNoticeNewPageProps = {
 export default async function AdminNoticeNewPage({ searchParams }: AdminNoticeNewPageProps) {
   const params = await searchParams;
   const categories = await getPublicCategories();
-  const games = getGameTitles();
-  const currentGameId = params.game ?? getDefaultGameId();
+  const games = await getGameTitles();
+  const currentGameId = params.game ?? getDefaultGameId(games);
 
   return (
     <AdminShell games={games} currentGameId={currentGameId}>

@@ -6,7 +6,9 @@ node_modules
 dist
 *.log
 .local-notices.json
+.local-game-titles.json
 .tmp-tests
 .tmp-tests-banner-*
 .tmp-tests-local-notice-*
+.tmp-tests-local-game-title-*
 public/uploads/

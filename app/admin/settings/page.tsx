@@ -17,9 +17,9 @@ type SettingsPageProps = {
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
   const params = await searchParams;
-  const games = getGameTitles();
+  const games = await getGameTitles();
   const categories = await getPublicCategories();
-  const currentGameId = params.game ?? getDefaultGameId();
+  const currentGameId = params.game ?? getDefaultGameId(games);
 
   return (
     <AdminShell games={games} currentGameId={currentGameId}>

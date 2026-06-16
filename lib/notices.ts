@@ -1,4 +1,5 @@
 import { gameTitles, noticeCategories } from "@/lib/mock-data";
+import { getLocalGameTitles } from "@/lib/local-game-title-store";
 import { getLocalNotices } from "@/lib/local-notice-store";
 import { parseNoticeDateTime } from "@/lib/date";
 import { supabase } from "@/lib/supabase";
@@ -34,12 +35,32 @@ export function getCategories() {
   return [...noticeCategories].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-export function getGameTitles() {
-  return [...gameTitles];
+async function getDbGameTitles() {
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("game_titles")
+    .select("id,name")
+    .order("name", { ascending: true });
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data.map((row) => ({
+    id: String(row.id),
+    name: String(row.name)
+  }));
 }
 
-export function getDefaultGameId() {
-  return gameTitles[0]?.id ?? "default";
+export async function getGameTitles() {
+  return (await getDbGameTitles()) ?? (await getLocalGameTitles());
+}
+
+export function getDefaultGameId(games = gameTitles) {
+  return games[0]?.id ?? "default";
 }
 
 function fromNoticeRow(row: Record<string, any>): Notice {

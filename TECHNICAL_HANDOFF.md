@@ -148,6 +148,7 @@ ADMIN_COOKIE_SECURE=true
 系统会进入本地文件模式:
 
 - 公告保存到 `.local-notices.json`
+- 游戏标题保存到 `.local-game-titles.json`
 - 图片保存到 `public/uploads/notices/`
 
 如果三项都配置完整:
@@ -181,6 +182,7 @@ API:
 - `PATCH /api/admin/notices/[id]`
 - `DELETE /api/admin/notices/[id]`
 - `POST /api/admin/uploads`
+- `GET/PUT /api/admin/game-titles`
 - `/uploads/notices/[file]`
 
 ## 6. 文件结构说明
@@ -311,6 +313,7 @@ API:
 当 Supabase 环境变量未配置时:
 
 - 公告文件: `/var/www/notice-cms/.local-notices.json`
+- 游戏标题文件: `/var/www/notice-cms/.local-game-titles.json`
 - 图片目录: `/var/www/notice-cms/public/uploads/notices/`
 
 这两个路径都不提交 Git。
@@ -320,6 +323,7 @@ API:
 ```bash
 cd /var/www/notice-cms
 cp .local-notices.json .local-notices.json.bak
+cp .local-game-titles.json .local-game-titles.json.bak
 tar -czf uploads-notices-backup.tar.gz public/uploads/notices
 ```
 
@@ -548,6 +552,7 @@ npm run build
 
 1. 备份服务器本地数据
    - `.local-notices.json`
+   - `.local-game-titles.json`
    - `public/uploads/notices/`
 
 2. 决定是否正式接入 Supabase
@@ -563,7 +568,6 @@ npm run build
 ### 中优先级
 
 1. 设置页面 DB 化
-   - 游戏标题
    - 分类
    - 模板
    - 管理员账号

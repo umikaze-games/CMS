@@ -26,8 +26,8 @@ export default async function AdminNoticeEditPage({
   const query = await searchParams;
   const notice = await getNoticeById(id);
   const categories = await getPublicCategories();
-  const games = getGameTitles();
-  const currentGameId = query.game ?? notice?.gameId ?? getDefaultGameId();
+  const games = await getGameTitles();
+  const currentGameId = query.game ?? notice?.gameId ?? getDefaultGameId(games);
 
   if (!notice) {
     notFound();
