@@ -396,15 +396,15 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
         />
       </div>
 
-      <label className="grid gap-2 text-sm font-bold text-ink">
-        {labels.body}
+      <div className="grid gap-2">
+        <span className="text-sm font-bold text-ink">{labels.body}</span>
         <AdminRichTextEditor
           value={bodyValue}
           onChange={setBodyValue}
           help={labels.bodyHelp}
           placeholder={labels.bodyPlaceholder}
         />
-      </label>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <input type="hidden" name="sort_order" value={notice?.sortOrder ?? 0} />

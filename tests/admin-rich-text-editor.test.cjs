@@ -3,6 +3,7 @@ const { readFileSync } = require("node:fs");
 const { test } = require("node:test");
 
 const source = readFileSync("components/admin-rich-text-editor.tsx", "utf8");
+const formSource = readFileSync("components/admin-notice-form.tsx", "utf8");
 
 test("rich text toolbar gives bold a visible active state", () => {
   assert.match(source, /active=\{activeFormats\.bold\}/);
@@ -75,25 +76,21 @@ test("rich text emoji picker has an explicit close button", () => {
   assert.match(emojiPickerBody, /<PanelHeader title=\{labels\.emoji\} onClose=\{\(\) => setShowEmojiMenu\(false\)\} \/>/);
 });
 
-test("rich text emoji picker closes from outside editor clicks", () => {
+test("rich text emoji picker closes without intercepting editor pointer focus", () => {
   assert.match(source, /emojiMenuRef/);
   assert.match(source, /function handleEmojiOutsidePointerDown\(event: globalThis\.PointerEvent\)/);
   assert.match(
     source,
-    /document\.addEventListener\("pointerdown", handleEmojiOutsidePointerDown, true\)/
+    /document\.addEventListener\("pointerdown", handleEmojiOutsidePointerDown\)/
   );
   assert.match(
     source,
-    /document\.removeEventListener\("pointerdown", handleEmojiOutsidePointerDown, true\)/
+    /document\.removeEventListener\("pointerdown", handleEmojiOutsidePointerDown\)/
   );
-  assert.match(source, /function handleEditorPointerDown\(\) \{/);
-  assert.match(source, /onPointerDownCapture=\{handleEditorPointerDown\}/);
+  assert.doesNotMatch(source, /onPointerDownCapture=\{handleEditorPointerDown\}/);
   assert.match(source, /ref=\{emojiMenuRef\}/);
-
-  const editorPointerDownBody =
-    source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
-      ?.[1] ?? "";
-  assert.match(editorPointerDownBody, /closeFloatingMenus\(\)/);
+  assert.match(source, /function closeFloatingMenusAfterPointerDefault\(close: \(\) => void\) \{/);
+  assert.match(source, /window\.setTimeout\(close, 0\)/);
 });
 
 test("rich text popup tool openers do not toggle closed from their buttons", () => {
@@ -111,11 +108,11 @@ test("rich text table popup closes from outside clicks", () => {
   assert.match(source, /function handleTableOutsidePointerDown\(event: globalThis\.PointerEvent\)/);
   assert.match(
     source,
-    /document\.addEventListener\("pointerdown", handleTableOutsidePointerDown, true\)/
+    /document\.addEventListener\("pointerdown", handleTableOutsidePointerDown\)/
   );
   assert.match(
     source,
-    /document\.removeEventListener\("pointerdown", handleTableOutsidePointerDown, true\)/
+    /document\.removeEventListener\("pointerdown", handleTableOutsidePointerDown\)/
   );
   assert.match(source, /ref=\{tableMenuRef\}/);
 });
@@ -123,9 +120,9 @@ test("rich text table popup closes from outside clicks", () => {
 test("rich text color popups close from outside clicks", () => {
   assert.match(source, /const menuRef = useRef<HTMLDivElement>\(null\)/);
   assert.match(source, /function handleOutsidePointerDown\(event: globalThis\.PointerEvent\)/);
-  assert.match(source, /if \(!menuRef\.current\?\.contains\(event\.target as Node\)\) \{\s*onClose\(\);/);
-  assert.match(source, /document\.addEventListener\("pointerdown", handleOutsidePointerDown, true\)/);
-  assert.match(source, /document\.removeEventListener\("pointerdown", handleOutsidePointerDown, true\)/);
+  assert.match(source, /if \(!menuRef\.current\?\.contains\(event\.target as Node\)\) \{\s*closeFloatingMenusAfterPointerDefault\(onClose\);/);
+  assert.match(source, /document\.addEventListener\("pointerdown", handleOutsidePointerDown\)/);
+  assert.match(source, /document\.removeEventListener\("pointerdown", handleOutsidePointerDown\)/);
 });
 
 test("rich text editor blank clicks close text adjustment popups", () => {
@@ -135,10 +132,10 @@ test("rich text editor blank clicks close text adjustment popups", () => {
   assert.match(source, /if \(showCellColorMenu\) \{\s*setShowCellColorMenu\(false\);\s*\}/);
   assert.match(source, /if \(showTableMenu\) \{\s*setShowTableMenu\(false\);\s*\}/);
 
-  const editorPointerDownBody =
-    source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
+  const editorFocusBody =
+    source.match(/function handleEditorFocus\(\) \{([\s\S]*?)\n  \}/)
       ?.[1] ?? "";
-  assert.match(editorPointerDownBody, /closeFloatingMenus\(\)/);
+  assert.match(editorFocusBody, /closeFloatingMenus\(\)/);
 });
 
 test("rich text editor text clicks avoid unnecessary state updates", () => {
@@ -178,4 +175,11 @@ test("rich text image insertion uploads images instead of embedding base64", () 
   assert.match(source, /fetch\("\/api\/admin\/uploads"/);
   assert.match(source, /insertInlineImage\(data\.url\)/);
   assert.doesNotMatch(source, /readAsDataURL/);
+});
+
+test("notice form does not wrap the rich text editor in a label", () => {
+  assert.doesNotMatch(
+    formSource,
+    /<label[^>]*>\s*\{labels\.body\}[\s\S]*?<AdminRichTextEditor[\s\S]*?<\/label>/
+  );
 });

@@ -914,6 +914,10 @@ const emojiGroups = [
 
 const emojiChoices = emojiGroups.flatMap((group) => group.items);
 
+function closeFloatingMenusAfterPointerDefault(close: () => void) {
+  window.setTimeout(close, 0);
+}
+
 type AdminRichTextEditorProps = {
   value: string;
   onChange: (value: string) => void;
@@ -989,13 +993,13 @@ export function AdminRichTextEditor({
 
     function handleEmojiOutsidePointerDown(event: globalThis.PointerEvent) {
       if (!emojiMenuRef.current?.contains(event.target as Node)) {
-        setShowEmojiMenu(false);
+        closeFloatingMenusAfterPointerDefault(() => setShowEmojiMenu(false));
       }
     }
 
-    document.addEventListener("pointerdown", handleEmojiOutsidePointerDown, true);
+    document.addEventListener("pointerdown", handleEmojiOutsidePointerDown);
     return () =>
-      document.removeEventListener("pointerdown", handleEmojiOutsidePointerDown, true);
+      document.removeEventListener("pointerdown", handleEmojiOutsidePointerDown);
   }, [showEmojiMenu]);
 
   useEffect(() => {
@@ -1005,13 +1009,13 @@ export function AdminRichTextEditor({
 
     function handleTableOutsidePointerDown(event: globalThis.PointerEvent) {
       if (!tableMenuRef.current?.contains(event.target as Node)) {
-        setShowTableMenu(false);
+        closeFloatingMenusAfterPointerDefault(() => setShowTableMenu(false));
       }
     }
 
-    document.addEventListener("pointerdown", handleTableOutsidePointerDown, true);
+    document.addEventListener("pointerdown", handleTableOutsidePointerDown);
     return () =>
-      document.removeEventListener("pointerdown", handleTableOutsidePointerDown, true);
+      document.removeEventListener("pointerdown", handleTableOutsidePointerDown);
   }, [showTableMenu]);
 
   function getCleanEditorHtml() {
@@ -1286,10 +1290,6 @@ export function AdminRichTextEditor({
     return cells;
   }
 
-  function handleEditorPointerDown() {
-    closeFloatingMenus();
-  }
-
   function handleEditorMouseDown(event: MouseEvent<HTMLDivElement>) {
     const cell = getCellFromEvent(event);
     if (!cell) {
@@ -1322,6 +1322,12 @@ export function AdminRichTextEditor({
     }
     dragStartCellRef.current = null;
     saveSelection();
+  }
+
+  function handleEditorFocus() {
+    closeFloatingMenus();
+    saveSelection();
+    updateToolbarState();
   }
 
   async function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
@@ -1509,7 +1515,6 @@ export function AdminRichTextEditor({
         contentEditable
         suppressContentEditableWarning
         onInput={syncValue}
-        onPointerDownCapture={handleEditorPointerDown}
         onMouseDown={handleEditorMouseDown}
         onMouseOver={handleEditorMouseOver}
         onMouseUp={handleEditorMouseUp}
@@ -1518,10 +1523,7 @@ export function AdminRichTextEditor({
           saveSelection();
           updateToolbarState();
         }}
-        onFocus={() => {
-          saveSelection();
-          updateToolbarState();
-        }}
+        onFocus={handleEditorFocus}
         onPaste={handlePaste}
         className="notice-editor min-h-[360px] resize-y overflow-auto rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold leading-7 outline-none transition empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
         data-placeholder={placeholder}
@@ -1563,12 +1565,12 @@ function ColorMenu({
 
     function handleOutsidePointerDown(event: globalThis.PointerEvent) {
       if (!menuRef.current?.contains(event.target as Node)) {
-        onClose();
+        closeFloatingMenusAfterPointerDefault(onClose);
       }
     }
 
-    document.addEventListener("pointerdown", handleOutsidePointerDown, true);
-    return () => document.removeEventListener("pointerdown", handleOutsidePointerDown, true);
+    document.addEventListener("pointerdown", handleOutsidePointerDown);
+    return () => document.removeEventListener("pointerdown", handleOutsidePointerDown);
   }, [onClose, open]);
 
   return (
