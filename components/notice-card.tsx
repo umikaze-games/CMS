@@ -3,12 +3,12 @@ import Link from "next/link";
 import { ArrowUpRight, Pin, Zap } from "lucide-react";
 import { CategoryBadge } from "@/components/category-badge";
 import { formatDateWithTime } from "@/lib/date";
+import { getNoticeExcerpt } from "@/lib/notice-text";
 import type { NoticeWithCategory } from "@/lib/types";
 
 const publishedLabel = "\u516c\u958b";
 const updatedLabel = "\u66f4\u65b0";
 const detailLabel = "\u8a73\u7d30\u3092\u898b\u308b";
-const imageMarkdownPattern = /!\[(.*?)\]\((.*?)\)/g;
 
 type NoticeCardProps = {
   notice: NoticeWithCategory;
@@ -61,7 +61,7 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
             {notice.title}
           </h2>
           <p className="line-clamp-2 text-sm leading-6 text-slate-600">
-            {notice.body.replace(imageMarkdownPattern, "").replace(/\n/g, " ")}
+            {getNoticeExcerpt(notice.body)}
           </p>
         </div>
 
