@@ -1,75 +1,137 @@
-# お知らせ CMS
+# Notice CMS
 
-公式サイトに表示するお知らせ一覧・詳細と、管理画面で投稿する CMS を分けた Next.js 構成です。
+游戏公告发布系统。前台用于展示公告列表和公告详情，后台用于创建、编辑、发布公告。
 
-## 画面
+当前线上地址:
 
-- 公式サイト側：`/notices`
-- お知らせ詳細：`/notices/[id]`
-- 管理者ログイン：`/admin/login`
-- お知らせ管理：`/admin/notices`
-- 新規作成：`/admin/notices/new`
-- 編集：`/admin/notices/[id]/edit`
+- 前台公告列表: `https://notice.alesgames.com/notices`
+- 后台登录: `https://notice.alesgames.com/admin/login`
+- 后台公告管理: `https://notice.alesgames.com/admin/notices`
 
-## 主な機能
+## 当前状态
 
-- カテゴリー絞り込み
-- 画像バナー表示
-- 重要なお知らせの上部固定表示
-- 公開日・更新日表示
-- タイトル、本文、カテゴリー、画像、公開状態、予約公開、固定表示、表示順の入力
-- Supabase Storage への画像アップロード API
+- 已部署到腾讯云 Ubuntu 服务器。
+- 域名 `notice.alesgames.com` 已指向服务器公网 IP。
+- Nginx 已做反向代理。
+- HTTPS 已通过 Certbot / Let's Encrypt 配置。
+- PM2 已托管 Next.js 进程 `notice-cms`，并已设置开机自启。
+- 后台登录已接入 `.env.local` 中的管理员账号密码，不再只是 UI 跳转。
+- 后台和 `/api/admin/*` 已通过 middleware 做登录保护。
+- Supabase 未配置时，公告会保存到服务器本地 `.local-notices.json`。
+- 本地上传图片会保存到 `public/uploads/notices/`，并通过 `/uploads/notices/[file]` 访问。
 
-## セットアップ
+## 主要页面
+
+前台:
+
+- `/`: 自动跳转到 `/notices`
+- `/notices`: 公告列表
+- `/notices/[id]`: 公告详情
+
+后台:
+
+- `/admin/login`: 管理员登录
+- `/admin/notices`: 公告管理
+- `/admin/notices/new`: 新建公告
+- `/admin/notices/[id]/edit`: 编辑公告
+- `/admin/settings`: 设置页面
+
+API:
+
+- `POST /api/admin/auth/login`: 登录
+- `POST /api/admin/auth/logout`: 登出
+- `POST /api/admin/notices`: 创建公告
+- `PUT /api/admin/notices/[id]`: 更新公告
+- `PATCH /api/admin/notices/[id]`: 状态更新
+- `DELETE /api/admin/notices/[id]`: 删除公告
+- `POST /api/admin/uploads`: 上传正文图片
+
+## 本地开发
 
 ```bash
 npm install
 npm run dev
 ```
 
-PowerShell で `npm` が実行ポリシーに止められる場合は、Windows の `npm.cmd` を使ってください。
+Windows PowerShell 如果不能直接执行 `npm`，使用:
 
 ```bash
 npm.cmd install
 npm.cmd run dev
 ```
 
-## Supabase
+测试和构建:
 
-1. Supabase プロジェクトを作成します。
-2. `supabase/schema.sql` を Supabase SQL Editor で実行します。
-3. `.env.example` を `.env.local` にコピーして値を入れます。
-4. 管理 API は `SUPABASE_SERVICE_ROLE_KEY` を使うため、ブラウザに公開しないでください。
+```bash
+npm test
+npm run build
+```
+
+## 环境变量
+
+复制 `.env.example` 为 `.env.local`，然后填写真实值。
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+ADMIN_SESSION_SECRET=
+ADMIN_COOKIE_SECURE=false
 ```
 
-現時点の一覧・詳細表示は `lib/mock-data.ts` のサンプルデータを読んでいます。実 DB 表示に切り替える場合は、`lib/notices.ts` の取得処理を Supabase クエリに差し替えます。
+说明:
 
-## DB 構成
+- `ADMIN_EMAIL` 和 `ADMIN_PASSWORD` 是后台登录账号。
+- `ADMIN_SESSION_SECRET` 用于签名登录 session，请使用长随机字符串。
+- HTTPS 线上环境建议设置 `ADMIN_COOKIE_SECURE=true`。
+- `.env.local` 不要提交到 GitHub。
+- Supabase 三项为空时，系统使用服务器本地 JSON 文件和本地图片目录运行。
 
-`notices`
+## 服务器同步部署
 
-- `id`
-- `category_id`
-- `title`
-- `body`
-- `banner_image`
-- `status`
-- `is_pinned`
-- `publish_at`
-- `sort_order`
-- `created_at`
-- `updated_at`
+服务器目录:
 
-`notice_categories`
+```bash
+/var/www/notice-cms
+```
 
-- `id`
-- `name`
-- `color`
-- `sort_order`
-- `created_at`
-- `updated_at`
+每次本地修改并推送 GitHub 后，在服务器执行:
+
+```bash
+cd /var/www/notice-cms
+git pull --ff-only
+npm run build
+pm2 restart notice-cms --update-env
+pm2 save
+```
+
+确认当前服务器版本:
+
+```bash
+cd /var/www/notice-cms
+git rev-parse --short HEAD
+pm2 status
+```
+
+如果浏览器仍显示旧 UI，先按 `Ctrl + F5` 强制刷新。
+如果仍然旧，检查服务器 `git rev-parse --short HEAD` 是否已经是最新 commit。
+
+## 已修复的重要问题
+
+- 后台登录已从纯 UI 改成真实账号密码登录。
+- `/admin/*` 和 `/api/admin/*` 已加 middleware 保护。
+- Nginx Basic Auth 不建议再叠加使用，避免出现双重登录弹窗。
+- 公告发布时间、NEW 标签时间已按东京时间处理。
+- 富文本正文的 HTML 摘要会去掉标签，不再在前台露出 `<span>` 等源码。
+- 图片上传改为文件路径，不再把大图以 base64 塞进公告 JSON。
+- 图片大小限制为 10MB。
+- 富文本工具栏的 emoji、图片、颜色、表格弹窗已改成点击按钮打开、点击正文或外部关闭。
+
+## 当前仍需注意
+
+- 如果没有配置 Supabase，公告数据存放在服务器本地 `.local-notices.json`，换服务器或重装前要备份。
+- 如果没有配置 Supabase，上传图片存放在 `public/uploads/notices/`，也需要备份。
+- 设置页面里的部分内容仍然依赖浏览器 `localStorage`，多设备协作前需要改成数据库保存。
+- 正式长期运营建议接入 Supabase PostgreSQL 和 Supabase Storage，避免只依赖服务器本地文件。
