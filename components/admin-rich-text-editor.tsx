@@ -932,7 +932,6 @@ export function AdminRichTextEditor({
   const tableMenuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
-  const editorPointerDownUntil = useRef(0);
   const lastExternalValue = useRef(value);
   const dragStartCellRef = useRef<HTMLTableCellElement | null>(null);
   const [textColor, setTextColor] = useState("#0f172a");
@@ -1105,10 +1104,6 @@ export function AdminRichTextEditor({
   }
 
   function openEmojiPicker() {
-    if (Date.now() < editorPointerDownUntil.current) {
-      return;
-    }
-
     saveSelection();
     setShowEmojiMenu(true);
     setShowTextColorMenu(false);
@@ -1270,7 +1265,6 @@ export function AdminRichTextEditor({
   }
 
   function handleEditorPointerDown() {
-    editorPointerDownUntil.current = Date.now() + 500;
     setShowEmojiMenu(false);
     setShowTextColorMenu(false);
     setShowCellColorMenu(false);
@@ -1674,11 +1668,23 @@ function ToolButton({
   disabled?: boolean;
   children: ReactNode;
 }) {
+  const pointerStartedRef = useRef(false);
+
   return (
     <button
       type="button"
-      onMouseDown={(event) => event.preventDefault()}
-      onClick={onClick}
+      onPointerDown={(event) => {
+        event.preventDefault();
+        pointerStartedRef.current = true;
+      }}
+      onClick={(event) => {
+        if (event.detail !== 0 && !pointerStartedRef.current) {
+          return;
+        }
+
+        pointerStartedRef.current = false;
+        onClick();
+      }}
       disabled={disabled}
       title={label}
       aria-label={label}

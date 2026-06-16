@@ -53,19 +53,14 @@ test("rich text emoji picker does not toggle closed from the opener", () => {
   assert.doesNotMatch(source, /setShowEmojiMenu\(\(current\) => !current\)/);
 });
 
-test("rich text editor blank clicks cannot open the emoji picker", () => {
-  assert.match(source, /const editorPointerDownUntil = useRef\(0\)/);
-
-  const editorPointerDownBody =
-    source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
-      ?.[1] ?? "";
-  assert.match(editorPointerDownBody, /editorPointerDownUntil\.current = Date\.now\(\) \+ 500/);
-
-  const openEmojiPickerBody =
-    source.match(/function openEmojiPicker\(\) \{([\s\S]*?)\n  \}/)
-      ?.[1] ?? "";
-  assert.match(openEmojiPickerBody, /if \(Date\.now\(\) < editorPointerDownUntil\.current\) \{\s*return;\s*\}/);
-  assert.match(openEmojiPickerBody, /setShowEmojiMenu\(true\)/);
+test("rich text toolbar ignores stray pointer clicks that did not start on a tool button", () => {
+  assert.match(source, /const pointerStartedRef = useRef\(false\)/);
+  assert.match(source, /onPointerDown=\{\(event\) => \{/);
+  assert.match(source, /pointerStartedRef\.current = true/);
+  assert.match(source, /if \(event\.detail !== 0 && !pointerStartedRef\.current\) \{\s*return;\s*\}/);
+  assert.match(source, /pointerStartedRef\.current = false/);
+  assert.match(source, /onClick\(\)/);
+  assert.doesNotMatch(source, /editorPointerDownUntil/);
 });
 
 test("rich text emoji picker closes after inserting a choice", () => {
