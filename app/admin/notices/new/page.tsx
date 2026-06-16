@@ -2,6 +2,7 @@ import { AdminNoticeForm } from "@/components/admin-notice-form";
 import { AdminCurrentClock } from "@/components/admin-current-clock";
 import { AdminShell } from "@/components/admin-shell";
 import { getDefaultGameId, getGameTitles, getPublicCategories } from "@/lib/notices";
+import { getNoticeTemplates } from "@/lib/server-notice-templates";
 
 const labels = {
   section: "CREATE",
@@ -18,6 +19,7 @@ export default async function AdminNoticeNewPage({ searchParams }: AdminNoticeNe
   const params = await searchParams;
   const categories = await getPublicCategories();
   const games = await getGameTitles();
+  const templates = await getNoticeTemplates();
   const currentGameId = params.game ?? getDefaultGameId(games);
 
   return (
@@ -31,7 +33,12 @@ export default async function AdminNoticeNewPage({ searchParams }: AdminNoticeNe
           <AdminCurrentClock />
         </div>
       </div>
-      <AdminNoticeForm categories={categories} games={games} currentGameId={currentGameId} />
+      <AdminNoticeForm
+        categories={categories}
+        games={games}
+        currentGameId={currentGameId}
+        templates={templates}
+      />
     </AdminShell>
   );
 }

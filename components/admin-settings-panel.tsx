@@ -12,7 +12,11 @@ import {
   hasGameName,
   saveGameTitles
 } from "@/lib/admin-game-titles";
-import { getNoticeTemplate, setNoticeTemplate } from "@/lib/notice-templates";
+import {
+  createNoticeTemplate,
+  getNoticeTemplate,
+  type NoticeTemplateMap
+} from "@/lib/notice-templates";
 import type { GameTitle, NoticeCategory } from "@/lib/types";
 
 const labels = {
@@ -54,6 +58,8 @@ const labels = {
   templateNoticeTitle: "\u30bf\u30a4\u30c8\u30eb",
   templateBody: "\u672c\u6587",
   templateSave: "\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u3092\u4fdd\u5b58",
+  templateSaveError:
+    "\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u306e\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
   deleteTitle: "\u9805\u76ee\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f",
   deleteDescription:
     "\u3053\u306e\u64cd\u4f5c\u306f\u753b\u9762\u4e0a\u306e\u8a2d\u5b9a\u30ea\u30b9\u30c8\u304b\u3089\u9805\u76ee\u3092\u524a\u9664\u3057\u307e\u3059\u3002",
@@ -96,6 +102,7 @@ type AdminAccount = {
 type AdminSettingsPanelProps = {
   games: GameTitle[];
   categories: NoticeCategory[];
+  templates: NoticeTemplateMap;
 };
 
 const roleOptions = [
@@ -105,10 +112,11 @@ const roleOptions = [
 ];
 const deleteGameConfirmationText = "\u78ba\u8a8d\u524a\u9664";
 
-export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProps) {
+export function AdminSettingsPanel({ games, categories, templates }: AdminSettingsPanelProps) {
   const router = useRouter();
   const [gameItems, setGameItems] = useState(() => dedupeGames(games));
   const [categoryItems, setCategoryItems] = useState(categories);
+  const [templateItems, setTemplateItems] = useState(templates);
   const [accountItems, setAccountItems] = useState<AdminAccount[]>([
     { id: "admin", password: "********", role: "Admin" }
   ]);
@@ -126,6 +134,7 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
   );
   const [templateTitle, setTemplateTitle] = useState("");
   const [templateBody, setTemplateBody] = useState("");
+  const [templateMessage, setTemplateMessage] = useState<string | null>(null);
   const [editingGame, setEditingGame] = useState<null | { index: number; name: string }>(null);
   const [editingPassword, setEditingPassword] = useState<null | { index: number; value: string }>(
     null
@@ -142,6 +151,10 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
   useEffect(() => {
     setCategoryItems(normalizeCategories(categories));
   }, [categories]);
+
+  useEffect(() => {
+    setTemplateItems(templates);
+  }, [templates]);
 
   async function persistGameItems(nextGames: GameTitle[]) {
     const previousGames = gameItems;
@@ -358,19 +371,39 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
   }
 
   function openTemplateEditor(category: NoticeCategory) {
-    const template = getNoticeTemplate(category.id);
+    const template = getNoticeTemplate(templateItems, category.id);
     setEditingTemplateCategory(category);
     setTemplateTitle(template?.title ?? "");
     setTemplateBody(template?.body ?? "");
+    setTemplateMessage(null);
   }
 
-  function saveTemplate() {
+  async function saveTemplate() {
     if (!editingTemplateCategory) {
       return;
     }
 
-    setNoticeTemplate(editingTemplateCategory.id, templateTitle, templateBody);
-    setEditingTemplateCategory(null);
+    const template = createNoticeTemplate(editingTemplateCategory.id, templateTitle, templateBody);
+
+    try {
+      const response = await fetch("/api/admin/templates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(template)
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(data?.message ?? labels.templateSaveError);
+      }
+
+      setTemplateItems((current) => ({ ...current, [template.categoryId]: template }));
+      setTemplateMessage(null);
+      setEditingTemplateCategory(null);
+      router.refresh();
+    } catch (error) {
+      setTemplateMessage(error instanceof Error ? error.message : labels.templateSaveError);
+    }
   }
 
   return (
@@ -771,6 +804,11 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
               </button>
             </div>
             <div className="grid gap-4 px-5 py-5">
+              {templateMessage ? (
+                <div className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                  {templateMessage}
+                </div>
+              ) : null}
               <label className="grid gap-2 text-sm font-bold text-ink">
                 {labels.templateNoticeTitle}
                 <input
@@ -802,7 +840,7 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
               </button>
               <button
                 type="button"
-                onClick={saveTemplate}
+                onClick={() => void saveTemplate()}
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-black text-white shadow-[0_16px_34px_rgba(8,145,178,0.22)]"
               >
                 <Save size={17} />

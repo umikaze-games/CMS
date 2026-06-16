@@ -3,6 +3,7 @@ import { AdminCurrentClock } from "@/components/admin-current-clock";
 import { AdminNoticeForm } from "@/components/admin-notice-form";
 import { AdminShell } from "@/components/admin-shell";
 import { getDefaultGameId, getGameTitles, getNoticeById, getPublicCategories } from "@/lib/notices";
+import { getNoticeTemplates } from "@/lib/server-notice-templates";
 
 const labels = {
   section: "EDIT",
@@ -27,6 +28,7 @@ export default async function AdminNoticeEditPage({
   const notice = await getNoticeById(id);
   const categories = await getPublicCategories();
   const games = await getGameTitles();
+  const templates = await getNoticeTemplates();
   const currentGameId = query.game ?? notice?.gameId ?? getDefaultGameId(games);
 
   if (!notice) {
@@ -48,6 +50,7 @@ export default async function AdminNoticeEditPage({
         categories={categories}
         games={games}
         currentGameId={currentGameId}
+        templates={templates}
         notice={notice}
       />
     </AdminShell>

@@ -40,6 +40,14 @@ on conflict (id) do update set
   sort_order = excluded.sort_order,
   updated_at = now();
 
+create table if not exists public.notice_templates (
+  category_id text primary key references public.notice_categories(id) on delete cascade,
+  title text not null default '',
+  body text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.notices (
   id uuid primary key default gen_random_uuid(),
   game_id text not null default 'stella-quest' references public.game_titles(id),
@@ -85,6 +93,7 @@ on conflict (id) do update set public = true;
 
 alter table public.notice_categories enable row level security;
 alter table public.game_titles enable row level security;
+alter table public.notice_templates enable row level security;
 alter table public.notices enable row level security;
 
 create policy "Public categories are readable"

@@ -15,7 +15,7 @@ import { getSaveResponseMessage } from "@/lib/admin-save-response";
 import { validateAdminBannerFile } from "@/lib/admin-upload";
 import { loadGameTitles, subscribeGameTitlesChange } from "@/lib/admin-game-titles";
 import { addDaysLocalDateTime, formatDateTimeLocal } from "@/lib/date";
-import { getNoticeTemplate } from "@/lib/notice-templates";
+import { getNoticeTemplate, type NoticeTemplateMap } from "@/lib/notice-templates";
 import type { GameTitle, NoticeCategory, NoticeWithCategory } from "@/lib/types";
 import type { NoticeStatus } from "@/lib/types";
 
@@ -64,6 +64,7 @@ type AdminNoticeFormProps = {
   categories: NoticeCategory[];
   games: GameTitle[];
   currentGameId: string;
+  templates: NoticeTemplateMap;
   notice?: NoticeWithCategory;
 };
 
@@ -78,7 +79,13 @@ type ReviewData = {
 const inputClass =
   "rounded-xl border border-line bg-white px-4 py-3 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100";
 
-export function AdminNoticeForm({ categories, games, currentGameId, notice }: AdminNoticeFormProps) {
+export function AdminNoticeForm({
+  categories,
+  games,
+  currentGameId,
+  templates,
+  notice
+}: AdminNoticeFormProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -243,7 +250,7 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
   }
 
   function loadSelectedTemplate() {
-    const template = getNoticeTemplate(categoryValue);
+    const template = getNoticeTemplate(templates, categoryValue);
     if (!template) {
       setMessage(labels.templateMissing);
       return;

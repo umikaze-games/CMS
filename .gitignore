@@ -8,6 +8,7 @@ dist
 .local-notices.json
 .local-game-titles.json
 .local-categories.json
+.local-notice-templates.json
 .tmp-tests
 .tmp-tests-banner-*
 .tmp-tests-local-notice-*

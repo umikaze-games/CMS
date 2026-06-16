@@ -5,38 +5,17 @@ export type NoticeTemplate = {
   updatedAt: string;
 };
 
-const storageKey = "notice-category-templates";
+export type NoticeTemplateMap = Record<string, NoticeTemplate>;
 
-export function getNoticeTemplates() {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  try {
-    return JSON.parse(window.localStorage.getItem(storageKey) ?? "{}") as Record<
-      string,
-      NoticeTemplate
-    >;
-  } catch {
-    return {};
-  }
+export function getNoticeTemplate(templates: NoticeTemplateMap, categoryId: string) {
+  return templates[categoryId] ?? null;
 }
 
-export function getNoticeTemplate(categoryId: string) {
-  return getNoticeTemplates()[categoryId] ?? null;
-}
-
-export function setNoticeTemplate(categoryId: string, title: string, body: string) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const templates = getNoticeTemplates();
-  templates[categoryId] = {
+export function createNoticeTemplate(categoryId: string, title: string, body: string) {
+  return {
     categoryId,
-    title,
-    body,
+    title: title.trim(),
+    body: body.trim(),
     updatedAt: new Date().toISOString()
-  };
-  window.localStorage.setItem(storageKey, JSON.stringify(templates));
+  } satisfies NoticeTemplate;
 }

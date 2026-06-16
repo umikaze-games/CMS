@@ -1,6 +1,7 @@
 import { AdminSettingsPanel } from "@/components/admin-settings-panel";
 import { AdminShell } from "@/components/admin-shell";
 import { getDefaultGameId, getGameTitles, getPublicCategories } from "@/lib/notices";
+import { getNoticeTemplates } from "@/lib/server-notice-templates";
 
 const labels = {
   section: "SETTINGS",
@@ -19,6 +20,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const params = await searchParams;
   const games = await getGameTitles();
   const categories = await getPublicCategories();
+  const templates = await getNoticeTemplates();
   const currentGameId = params.game ?? getDefaultGameId(games);
 
   return (
@@ -28,7 +30,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         <h1 className="text-3xl font-black text-ink">{labels.title}</h1>
         <p className="mt-2 text-sm text-muted">{labels.lead}</p>
       </div>
-      <AdminSettingsPanel games={games} categories={categories} />
+      <AdminSettingsPanel games={games} categories={categories} templates={templates} />
     </AdminShell>
   );
 }
