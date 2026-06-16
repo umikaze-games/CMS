@@ -1066,7 +1066,14 @@ export function AdminRichTextEditor({
 
   function insertEmoji(value: string) {
     runCommand("insertText", value);
-    setShowEmojiMenu(false);
+  }
+
+  function openEmojiPicker() {
+    saveSelection();
+    setShowEmojiMenu(true);
+    setShowTextColorMenu(false);
+    setShowCellColorMenu(false);
+    setShowTableMenu(false);
   }
 
   function openImagePicker() {
@@ -1251,13 +1258,7 @@ export function AdminRichTextEditor({
           <button
             type="button"
             onMouseDown={(event) => event.preventDefault()}
-            onClick={() => {
-              saveSelection();
-              setShowEmojiMenu((current) => !current);
-              setShowTextColorMenu(false);
-              setShowCellColorMenu(false);
-              setShowTableMenu(false);
-            }}
+            onClick={openEmojiPicker}
             title={labels.emoji}
             aria-label={labels.emoji}
             aria-expanded={showEmojiMenu}

@@ -33,6 +33,18 @@ test("rich text emoji chip opens a selectable picker", () => {
   assert.match(source, /label: "\u65d7"/);
 });
 
+test("rich text emoji picker does not toggle closed from the opener", () => {
+  assert.match(source, /function openEmojiPicker\(\)/);
+  assert.match(source, /setShowEmojiMenu\(true\)/);
+  assert.doesNotMatch(source, /setShowEmojiMenu\(\(current\) => !current\)/);
+});
+
+test("rich text emoji picker stays open after inserting a choice", () => {
+  const insertEmojiBody = source.match(/function insertEmoji\(value: string\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  assert.match(insertEmojiBody, /runCommand\("insertText", value\)/);
+  assert.doesNotMatch(insertEmojiBody, /setShowEmojiMenu\(false\)/);
+});
+
 test("rich text image chip opens an image picker", () => {
   assert.match(source, /onClick=\{openImagePicker\}/);
   assert.match(source, /<input[\s\S]*type="file"[\s\S]*accept="image\/\*"/);
