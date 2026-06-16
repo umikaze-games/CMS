@@ -987,14 +987,15 @@ export function AdminRichTextEditor({
       return;
     }
 
-    function handleEmojiOutsideClick(event: globalThis.MouseEvent) {
+    function handleEmojiOutsidePointerDown(event: globalThis.PointerEvent) {
       if (!emojiMenuRef.current?.contains(event.target as Node)) {
         setShowEmojiMenu(false);
       }
     }
 
-    window.addEventListener("mousedown", handleEmojiOutsideClick);
-    return () => window.removeEventListener("mousedown", handleEmojiOutsideClick);
+    document.addEventListener("pointerdown", handleEmojiOutsidePointerDown, true);
+    return () =>
+      document.removeEventListener("pointerdown", handleEmojiOutsidePointerDown, true);
   }, [showEmojiMenu]);
 
   useEffect(() => {
@@ -1261,6 +1262,10 @@ export function AdminRichTextEditor({
     return cells;
   }
 
+  function handleEditorPointerDown() {
+    setShowEmojiMenu(false);
+  }
+
   function handleEditorMouseDown(event: MouseEvent<HTMLDivElement>) {
     setShowEmojiMenu(false);
     const cell = getCellFromEvent(event);
@@ -1497,6 +1502,7 @@ export function AdminRichTextEditor({
         contentEditable
         suppressContentEditableWarning
         onInput={syncValue}
+        onPointerDownCapture={handleEditorPointerDown}
         onMouseDown={handleEditorMouseDown}
         onMouseOver={handleEditorMouseOver}
         onMouseUp={handleEditorMouseUp}
