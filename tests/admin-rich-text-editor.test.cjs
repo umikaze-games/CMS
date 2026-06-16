@@ -28,9 +28,23 @@ test("rich text emoji chip opens a selectable picker", () => {
   assert.match(source, /showEmojiMenu/);
   assert.match(source, /selectedEmojiChoices\.map/);
   assert.match(source, /onClick=\{\(\) => insertEmoji\(item\)\}/);
+  assert.match(source, /<SmilePlus size=\{16\} \/>/);
   assert.match(source, /label: "\u9854"/);
   assert.match(source, /label: "\u9854\u6587\u5b57"/);
   assert.match(source, /label: "\u65d7"/);
+});
+
+test("rich text emoji and image tools sit inside the right toolbar", () => {
+  const toolbarBody =
+    source.match(/<div className="relative ml-auto flex[\s\S]*?<\/div>\s*<\/div>\s*<div\s*ref=\{editorRef\}/)
+      ?.[0] ?? "";
+  assert.match(toolbarBody, /ref=\{emojiMenuRef\}/);
+  assert.match(toolbarBody, /onClick=\{openEmojiPicker\}/);
+  assert.match(toolbarBody, /<SmilePlus size=\{16\} \/>/);
+  assert.match(toolbarBody, /onClick=\{openImagePicker\}/);
+  assert.match(toolbarBody, /<ImagePlus size=\{16\} \/>/);
+  assert.doesNotMatch(source, /gap-1 rounded-full bg-cyan-50 px-2\.5 py-1/);
+  assert.doesNotMatch(source, /gap-1 rounded-full bg-indigo-50 px-2\.5 py-1/);
 });
 
 test("rich text emoji picker does not toggle closed from the opener", () => {
@@ -110,6 +124,7 @@ test("rich text editor blank clicks close text adjustment popups", () => {
 
 test("rich text image chip opens an image picker", () => {
   assert.match(source, /onClick=\{openImagePicker\}/);
+  assert.match(source, /<ImagePlus size=\{16\} \/>/);
   assert.match(source, /<input[\s\S]*type="file"[\s\S]*accept="image\/\*"/);
 });
 

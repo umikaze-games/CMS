@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 
 const labels = {
-  emoji: "\u7d75\u6587\u5b57OK",
-  image: "\u753b\u50cf\u8cbc\u308a\u4ed8\u3051\u5bfe\u5fdc",
+  emoji: "\u7d75\u6587\u5b57",
+  image: "\u753b\u50cf\u3092\u633f\u5165",
   imageUploadFailed: "\u753b\u50cf\u306e\u633f\u5165\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
   bold: "\u592a\u5b57",
   strike: "\u53d6\u308a\u6d88\u3057\u7dda",
@@ -1320,83 +1320,65 @@ export function AdminRichTextEditor({
   return (
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <div ref={emojiMenuRef} className="relative">
-          <button
-            type="button"
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={openEmojiPicker}
-            title={labels.emoji}
-            aria-label={labels.emoji}
-            aria-expanded={showEmojiMenu}
-            className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-700 transition hover:bg-cyan-100"
-          >
-            <SmilePlus size={14} />
-            {labels.emoji}
-          </button>
-          {showEmojiMenu ? (
-            <div className="absolute left-0 top-full z-30 mt-2 w-[min(88vw,28rem)] rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_60px_rgba(15,23,42,0.18)]">
-              <div className="mb-3 flex gap-1 overflow-x-auto pb-1">
-                {emojiGroups.map((group) => (
-                  <button
-                    key={group.label}
-                    type="button"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => setSelectedEmojiGroup(group.label)}
-                    aria-pressed={selectedEmojiGroup === group.label}
-                    className={`h-8 shrink-0 rounded-lg px-2 text-xs font-black transition ${
-                      selectedEmojiGroup === group.label
-                        ? "bg-cyan-100 text-cyan-700"
-                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                    }`}
-                  >
-                    {group.label}
-                  </button>
-                ))}
-              </div>
-              <div
-                className={`grid max-h-72 overflow-y-auto pr-1 ${
-                  selectedEmojiGroup === "顔文字" ? "grid-cols-2 gap-1.5" : "grid-cols-8 gap-1"
-                }`}
-              >
-                {selectedEmojiChoices.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => insertEmoji(item)}
-                    title={item}
-                    aria-label={`${labels.insert} ${item}`}
-                    className={`min-h-10 rounded-xl px-2 text-center font-black text-slate-700 transition hover:bg-cyan-50 hover:text-cyan-700 ${
-                      selectedEmojiGroup === "顔文字" ? "text-xs" : "text-xl"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={openImagePicker}
-          disabled={isUploadingImage}
-          title={labels.image}
-          aria-label={labels.image}
-          className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-wait disabled:opacity-60"
-        >
-          <ImagePlus size={14} />
-          {labels.image}
-        </button>
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(event) => void handleImageInputChange(event.target.files?.[0] ?? null)}
-        />
         <div className="relative ml-auto flex flex-wrap items-center justify-end gap-1 rounded-xl border border-slate-200 bg-white px-2 py-1 shadow-sm">
+          <div ref={emojiMenuRef} className="relative">
+            <ToolButton label={labels.emoji} active={showEmojiMenu} onClick={openEmojiPicker}>
+              <SmilePlus size={16} />
+            </ToolButton>
+            {showEmojiMenu ? (
+              <div className="absolute left-0 top-full z-30 mt-2 w-[min(88vw,28rem)] rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_60px_rgba(15,23,42,0.18)]">
+                <div className="mb-3 flex gap-1 overflow-x-auto pb-1">
+                  {emojiGroups.map((group) => (
+                    <button
+                      key={group.label}
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => setSelectedEmojiGroup(group.label)}
+                      aria-pressed={selectedEmojiGroup === group.label}
+                      className={`h-8 shrink-0 rounded-lg px-2 text-xs font-black transition ${
+                        selectedEmojiGroup === group.label
+                          ? "bg-cyan-100 text-cyan-700"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      }`}
+                    >
+                      {group.label}
+                    </button>
+                  ))}
+                </div>
+                <div
+                  className={`grid max-h-72 overflow-y-auto pr-1 ${
+                    selectedEmojiGroup === "顔文字" ? "grid-cols-2 gap-1.5" : "grid-cols-8 gap-1"
+                  }`}
+                >
+                  {selectedEmojiChoices.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => insertEmoji(item)}
+                      title={item}
+                      aria-label={`${labels.insert} ${item}`}
+                      className={`min-h-10 rounded-xl px-2 text-center font-black text-slate-700 transition hover:bg-cyan-50 hover:text-cyan-700 ${
+                        selectedEmojiGroup === "顔文字" ? "text-xs" : "text-xl"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <ToolButton label={labels.image} onClick={openImagePicker} disabled={isUploadingImage}>
+            <ImagePlus size={16} />
+          </ToolButton>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(event) => void handleImageInputChange(event.target.files?.[0] ?? null)}
+          />
           <ToolButton
             label={labels.bold}
             active={activeFormats.bold}
@@ -1675,11 +1657,13 @@ function ToolButton({
   label,
   onClick,
   active = false,
+  disabled = false,
   children
 }: {
   label: string;
   onClick: () => void;
   active?: boolean;
+  disabled?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -1687,10 +1671,11 @@ function ToolButton({
       type="button"
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
+      disabled={disabled}
       title={label}
       aria-label={label}
       aria-pressed={active}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition ${
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition disabled:cursor-wait disabled:opacity-60 ${
         active
           ? "bg-cyan-100 text-cyan-700 ring-1 ring-cyan-300"
           : "text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
