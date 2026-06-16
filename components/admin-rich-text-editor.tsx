@@ -90,6 +90,13 @@ export function AdminRichTextEditor({
   const [columns, setColumns] = useState(3);
   const [selectedCells, setSelectedCells] = useState<HTMLTableCellElement[]>([]);
   const [isSelectingCells, setIsSelectingCells] = useState(false);
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    strikeThrough: false,
+    justifyLeft: false,
+    justifyCenter: false,
+    justifyRight: false
+  });
 
   useEffect(() => {
     if (!editorRef.current) {
@@ -132,6 +139,7 @@ export function AdminRichTextEditor({
     const nextValue = getCleanEditorHtml();
     lastExternalValue.current = nextValue;
     onChange(nextValue);
+    updateToolbarState();
   }
 
   function saveSelection() {
@@ -158,11 +166,45 @@ export function AdminRichTextEditor({
     selection?.addRange(range);
   }
 
-  function runCommand(command: string, commandValue?: string) {
+  function updateToolbarState() {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    setActiveFormats({
+      bold: document.queryCommandState("bold"),
+      strikeThrough: document.queryCommandState("strikeThrough"),
+      justifyLeft: document.queryCommandState("justifyLeft"),
+      justifyCenter: document.queryCommandState("justifyCenter"),
+      justifyRight: document.queryCommandState("justifyRight")
+    });
+  }
+
+  function collapseSelectionToEnd() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || !editorRef.current) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    if (!editorRef.current.contains(range.commonAncestorContainer)) {
+      return;
+    }
+
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  function runCommand(command: string, commandValue?: string, collapseAfter = true) {
     restoreSelection();
     document.execCommand(command, false, commandValue);
+    if (collapseAfter) {
+      collapseSelectionToEnd();
+    }
     saveSelection();
     syncValue();
+    updateToolbarState();
   }
 
   function applyTextColor(nextColor: string) {
@@ -200,7 +242,8 @@ export function AdminRichTextEditor({
 
     runCommand(
       "insertHTML",
-      `<div class="notice-table-scroll" style="width:640px;height:auto;"><table class="notice-rich-table"><tbody>${tableRows}</tbody></table></div><p><br></p>`
+      `<div class="notice-table-scroll" style="width:640px;height:auto;"><table class="notice-rich-table"><tbody>${tableRows}</tbody></table></div><p><br></p>`,
+      false
     );
     setShowTableMenu(false);
   }
@@ -258,7 +301,6 @@ export function AdminRichTextEditor({
     const cell = getCellFromEvent(event);
     if (!cell) {
       clearSelectedCells();
-      saveSelection();
       return;
     }
 
@@ -285,6 +327,7 @@ export function AdminRichTextEditor({
     setIsSelectingCells(false);
     dragStartCellRef.current = null;
     saveSelection();
+    updateToolbarState();
   }
 
   async function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
@@ -315,19 +358,39 @@ export function AdminRichTextEditor({
           {labels.image}
         </span>
         <div className="relative ml-auto flex flex-wrap items-center justify-end gap-1 rounded-xl border border-slate-200 bg-white px-2 py-1 shadow-sm">
-          <ToolButton label={labels.bold} onClick={() => runCommand("bold")}>
+          <ToolButton
+            label={labels.bold}
+            active={activeFormats.bold}
+            onClick={() => runCommand("bold")}
+          >
             <Bold size={16} />
           </ToolButton>
-          <ToolButton label={labels.strike} onClick={() => runCommand("strikeThrough")}>
+          <ToolButton
+            label={labels.strike}
+            active={activeFormats.strikeThrough}
+            onClick={() => runCommand("strikeThrough")}
+          >
             <Strikethrough size={16} />
           </ToolButton>
-          <ToolButton label={labels.left} onClick={() => runCommand("justifyLeft")}>
+          <ToolButton
+            label={labels.left}
+            active={activeFormats.justifyLeft}
+            onClick={() => runCommand("justifyLeft")}
+          >
             <AlignLeft size={16} />
           </ToolButton>
-          <ToolButton label={labels.center} onClick={() => runCommand("justifyCenter")}>
+          <ToolButton
+            label={labels.center}
+            active={activeFormats.justifyCenter}
+            onClick={() => runCommand("justifyCenter")}
+          >
             <AlignCenter size={16} />
           </ToolButton>
-          <ToolButton label={labels.right} onClick={() => runCommand("justifyRight")}>
+          <ToolButton
+            label={labels.right}
+            active={activeFormats.justifyRight}
+            onClick={() => runCommand("justifyRight")}
+          >
             <AlignRight size={16} />
           </ToolButton>
           <div className="relative">
@@ -423,8 +486,14 @@ export function AdminRichTextEditor({
         onMouseOver={handleEditorMouseOver}
         onMouseUp={handleEditorMouseUp}
         onMouseLeave={handleEditorMouseUp}
-        onKeyUp={saveSelection}
-        onFocus={saveSelection}
+        onKeyUp={() => {
+          saveSelection();
+          updateToolbarState();
+        }}
+        onFocus={() => {
+          saveSelection();
+          updateToolbarState();
+        }}
         onPaste={handlePaste}
         className="notice-editor min-h-[360px] resize-y overflow-auto rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold leading-7 outline-none transition empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
         data-placeholder={placeholder}
@@ -580,10 +649,12 @@ function PanelHeader({ title, onClose }: { title: string; onClose: () => void })
 function ToolButton({
   label,
   onClick,
+  active = false,
   children
 }: {
   label: string;
   onClick: () => void;
+  active?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -593,7 +664,12 @@ function ToolButton({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
+      aria-pressed={active}
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition ${
+        active
+          ? "bg-cyan-100 text-cyan-700 ring-1 ring-cyan-300"
+          : "text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
+      }`}
     >
       {children}
     </button>
