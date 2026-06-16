@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { saveLocalBannerFile } from "@/lib/local-banner-store";
 import { createLocalNotice } from "@/lib/local-notice-store";
 import { readNoticeFormData, slugifyFileName } from "@/lib/notice-form";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
     try {
       const formData = await request.formData();
       const values = readNoticeFormData(formData);
-      const bannerImage = values.banner ? await fileToDataUrl(values.banner) : null;
+      const bannerImage = values.banner ? await saveLocalBannerFile(values.banner) : null;
       const notice = await createLocalNotice({
         gameId: values.gameId,
         categoryId: values.categoryId,
@@ -92,9 +93,4 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-}
-
-async function fileToDataUrl(file: File) {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  return `data:${file.type || "image/png"};base64,${buffer.toString("base64")}`;
 }

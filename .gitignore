@@ -7,3 +7,5 @@ dist
 *.log
 .local-notices.json
 .tmp-tests
+.tmp-tests-banner-*
+public/uploads/

@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { migrateLocalBannerDataUrls } from "@/lib/local-banner-store";
 import { notices as seedNotices } from "@/lib/mock-data";
 import type { Notice, NoticeStatus } from "@/lib/types";
 
@@ -68,7 +69,12 @@ export async function deleteLocalNotice(id: string) {
 async function readStore() {
   try {
     const content = await fs.readFile(storePath, "utf8");
-    return JSON.parse(content) as Notice[];
+    const items = JSON.parse(content) as Notice[];
+    const migrated = await migrateLocalBannerDataUrls(items);
+    if (migrated.changed) {
+      await writeStore(migrated.items);
+    }
+    return migrated.items;
   } catch {
     await writeStore(seedNotices);
     return [...seedNotices];

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { saveLocalBannerFile } from "@/lib/local-banner-store";
 import {
   deleteLocalNotice,
   getLocalNotices,
@@ -27,7 +28,7 @@ export async function PUT(request: Request, context: RouteContext) {
       const currentNotices = await getLocalNotices();
       const currentNotice = currentNotices.find((item) => item.id === id);
       const bannerImage = values.banner
-        ? await fileToDataUrl(values.banner)
+        ? await saveLocalBannerFile(values.banner)
         : currentNotice?.bannerImage ?? null;
       await updateLocalNotice(id, {
         gameId: values.gameId,
@@ -160,9 +161,4 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   return NextResponse.json({ id });
-}
-
-async function fileToDataUrl(file: File) {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  return `data:${file.type || "image/png"};base64,${buffer.toString("base64")}`;
 }
