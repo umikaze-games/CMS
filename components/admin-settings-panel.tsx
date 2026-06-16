@@ -54,6 +54,10 @@ const labels = {
   deleteTitle: "\u9805\u76ee\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f",
   deleteDescription:
     "\u3053\u306e\u64cd\u4f5c\u306f\u753b\u9762\u4e0a\u306e\u8a2d\u5b9a\u30ea\u30b9\u30c8\u304b\u3089\u9805\u76ee\u3092\u524a\u9664\u3057\u307e\u3059\u3002",
+  deleteGameTitle: "\u30b2\u30fc\u30e0\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f",
+  deleteGameCascadeDescription:
+    "\u3053\u306e\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u3068\u3001\u3053\u306e\u30b2\u30fc\u30e0\u306b\u7d10\u3065\u304f\u304a\u77e5\u3089\u305b\u3092\u3059\u3079\u3066\u524a\u9664\u3057\u307e\u3059\u3002\u5143\u306b\u623b\u305b\u307e\u305b\u3093\u3002\u524a\u9664\u3059\u308b\u306b\u306f\u4e0b\u306e\u5165\u529b\u6b04\u306b\u300c\u78ba\u8a8d\u524a\u9664\u300d\u3068\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+  deleteGameConfirmationLabel: "\u78ba\u8a8d\u6587\u5b57",
   deleteConfirm: "\u524a\u9664\u3059\u308b",
   deleteCancel: "\u30ad\u30e3\u30f3\u30bb\u30eb"
 };
@@ -94,6 +98,7 @@ const roleOptions = [
   { label: "Editor", value: "Editor" },
   { label: "Viewer", value: "Viewer" }
 ];
+const deleteGameConfirmationText = "\u78ba\u8a8d\u524a\u9664";
 
 export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProps) {
   const router = useRouter();
@@ -513,14 +518,26 @@ export function AdminSettingsPanel({ games, categories }: AdminSettingsPanelProp
       <AdminConfirmDialog
         open={confirmAction !== null}
         tone={confirmAction?.type === "add-game" ? "warning" : "danger"}
-        title={confirmAction?.type === "add-game" ? labels.addGameTitle : labels.deleteTitle}
+        title={
+          confirmAction?.type === "add-game"
+            ? labels.addGameTitle
+            : confirmAction?.type === "delete-game"
+              ? labels.deleteGameTitle
+              : labels.deleteTitle
+        }
         description={
           confirmAction?.type === "add-game"
             ? `${labels.addGameDescription}\n${confirmAction.name}`
+            : confirmAction?.type === "delete-game"
+              ? `${labels.deleteGameCascadeDescription}\n${confirmAction.name}`
             : labels.deleteDescription
         }
         confirmLabel={
           confirmAction?.type === "add-game" ? labels.addGameConfirm : labels.deleteConfirm
+        }
+        confirmationLabel={labels.deleteGameConfirmationLabel}
+        confirmationRequiredText={
+          confirmAction?.type === "delete-game" ? deleteGameConfirmationText : undefined
         }
         onCancel={() => setConfirmAction(null)}
         onConfirm={handleConfirmAction}

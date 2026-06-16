@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dedupeGames } from "@/lib/admin-game-titles";
-import { saveLocalGameTitles } from "@/lib/local-game-title-store";
+import { getLocalGameTitles, saveLocalGameTitles } from "@/lib/local-game-title-store";
+import { deleteLocalNoticesByGameIds } from "@/lib/local-notice-store";
 import { getGameTitles } from "@/lib/notices";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { GameTitle } from "@/lib/types";
@@ -22,6 +23,9 @@ export async function PUT(request: Request) {
     }
 
     if (!supabaseAdmin) {
+      const currentGames = await getLocalGameTitles();
+      const deleteIds = getDeletedGameIds(currentGames, games);
+      await deleteLocalNoticesByGameIds(deleteIds);
       return NextResponse.json({ games: await saveLocalGameTitles(games), local: true });
     }
 
@@ -50,6 +54,15 @@ export async function PUT(request: Request) {
       existingRows?.map((row) => String(row.id)).filter((id) => !nextIds.has(id)) ?? [];
 
     if (deleteIds.length > 0) {
+      const { error: noticeDeleteError } = await supabaseAdmin
+        .from("notices")
+        .delete()
+        .in("game_id", deleteIds);
+
+      if (noticeDeleteError) {
+        throw noticeDeleteError;
+      }
+
       const { error: deleteError } = await supabaseAdmin
         .from("game_titles")
         .delete()
@@ -67,6 +80,11 @@ export async function PUT(request: Request) {
       { status: 400 }
     );
   }
+}
+
+function getDeletedGameIds(currentGames: GameTitle[], nextGames: GameTitle[]) {
+  const nextIds = new Set(nextGames.map((game) => game.id));
+  return currentGames.map((game) => game.id).filter((id) => !nextIds.has(id));
 }
 
 function readGameTitles(value: unknown) {

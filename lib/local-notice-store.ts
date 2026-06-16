@@ -66,6 +66,16 @@ export async function deleteLocalNotice(id: string) {
   await writeStore(current.filter((item) => item.id !== id));
 }
 
+export async function deleteLocalNoticesByGameIds(gameIds: string[]) {
+  if (gameIds.length === 0) {
+    return;
+  }
+
+  const current = await readStore();
+  const deleteIds = new Set(gameIds);
+  await writeStore(current.filter((item) => !deleteIds.has(item.gameId)));
+}
+
 async function readStore() {
   try {
     const content = await fs.readFile(storePath, "utf8");
