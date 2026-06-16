@@ -22,10 +22,15 @@ test("rich text toolbar renders one bold button", () => {
 });
 
 test("rich text emoji chip opens a selectable picker", () => {
-  assert.match(source, /const emojiChoices = \[/);
+  assert.match(source, /const emojiGroups = \[/);
+  assert.match(source, /emojiChoices = emojiGroups\.flatMap/);
+  assert.match(source, /selectedEmojiGroup/);
   assert.match(source, /showEmojiMenu/);
-  assert.match(source, /emojiChoices\.map/);
+  assert.match(source, /selectedEmojiChoices\.map/);
   assert.match(source, /onClick=\{\(\) => insertEmoji\(item\)\}/);
+  assert.match(source, /label: "\u9854"/);
+  assert.match(source, /label: "\u9854\u6587\u5b57"/);
+  assert.match(source, /label: "\u65d7"/);
 });
 
 test("rich text image chip opens an image picker", () => {
