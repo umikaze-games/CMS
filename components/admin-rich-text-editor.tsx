@@ -64,6 +64,25 @@ const themeColorColumns = [
   ["#eadcf8", "#d5a6f2", "#b565d9", "#8e24aa", "#6a1b9a", "#4a148c"]
 ];
 
+const emojiChoices = [
+  "😊",
+  "✨",
+  "🎉",
+  "🔥",
+  "✅",
+  "⚠️",
+  "🙏",
+  "💎",
+  "(｀・ω・´)",
+  "( ´ ▽ ` )ﾉ",
+  "(｡･ω･｡)",
+  "(๑•̀ㅂ•́)و✧",
+  "m(_ _)m",
+  "(>_<)",
+  "(；・∀・)",
+  "(*´∀｀*)"
+];
+
 type AdminRichTextEditorProps = {
   value: string;
   onChange: (value: string) => void;
@@ -85,6 +104,7 @@ export function AdminRichTextEditor({
   const [textColor, setTextColor] = useState("#0f172a");
   const [textCustomColor, setTextCustomColor] = useState("#0f172a");
   const [cellCustomColor, setCellCustomColor] = useState("#16a34a");
+  const [showEmojiMenu, setShowEmojiMenu] = useState(false);
   const [showTextColorMenu, setShowTextColorMenu] = useState(false);
   const [showCellColorMenu, setShowCellColorMenu] = useState(false);
   const [showTableMenu, setShowTableMenu] = useState(false);
@@ -210,12 +230,14 @@ export function AdminRichTextEditor({
     updateToolbarState();
   }
 
-  function insertEmoji() {
-    runCommand("insertText", "\ud83d\ude0a");
+  function insertEmoji(value: string) {
+    runCommand("insertText", value);
+    setShowEmojiMenu(false);
   }
 
   function openImagePicker() {
     saveSelection();
+    setShowEmojiMenu(false);
     imageInputRef.current?.click();
   }
 
@@ -252,6 +274,7 @@ export function AdminRichTextEditor({
   function applyTextColor(nextColor: string) {
     setTextColor(nextColor);
     setTextCustomColor(nextColor);
+    setShowEmojiMenu(false);
     setShowTextColorMenu(false);
     setShowCellColorMenu(false);
     runCommand("foreColor", nextColor);
@@ -266,6 +289,7 @@ export function AdminRichTextEditor({
       cell.style.backgroundColor = nextColor;
     });
     setCellCustomColor(nextColor);
+    setShowEmojiMenu(false);
     setShowCellColorMenu(false);
     setShowTextColorMenu(false);
     syncValue();
@@ -288,6 +312,7 @@ export function AdminRichTextEditor({
       false
     );
     setShowTableMenu(false);
+    setShowEmojiMenu(false);
   }
 
   function clearSelectedCells() {
@@ -381,23 +406,50 @@ export function AdminRichTextEditor({
     }
 
     event.preventDefault();
+    setShowEmojiMenu(false);
     await insertImageFile(image);
   }
 
   return (
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={insertEmoji}
-          title={labels.emoji}
-          aria-label={labels.emoji}
-          className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-700 transition hover:bg-cyan-100"
-        >
-          <SmilePlus size={14} />
-          {labels.emoji}
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              saveSelection();
+              setShowEmojiMenu((current) => !current);
+              setShowTextColorMenu(false);
+              setShowCellColorMenu(false);
+              setShowTableMenu(false);
+            }}
+            title={labels.emoji}
+            aria-label={labels.emoji}
+            aria-expanded={showEmojiMenu}
+            className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-700 transition hover:bg-cyan-100"
+          >
+            <SmilePlus size={14} />
+            {labels.emoji}
+          </button>
+          {showEmojiMenu ? (
+            <div className="absolute left-0 top-full z-30 mt-2 grid w-72 grid-cols-4 gap-1.5 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_60px_rgba(15,23,42,0.18)]">
+              {emojiChoices.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => insertEmoji(item)}
+                  title={item}
+                  aria-label={`${labels.insert} ${item}`}
+                  className="min-h-10 rounded-xl px-2 text-center text-sm font-black text-slate-700 transition hover:bg-cyan-50 hover:text-cyan-700"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
         <button
           type="button"
           onMouseDown={(event) => event.preventDefault()}

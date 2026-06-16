@@ -21,8 +21,14 @@ test("rich text toolbar renders one bold button", () => {
   assert.equal(boldButtonCount, 1);
 });
 
-test("rich text status chips are insert buttons", () => {
-  assert.match(source, /onClick=\{insertEmoji\}/);
+test("rich text emoji chip opens a selectable picker", () => {
+  assert.match(source, /const emojiChoices = \[/);
+  assert.match(source, /showEmojiMenu/);
+  assert.match(source, /emojiChoices\.map/);
+  assert.match(source, /onClick=\{\(\) => insertEmoji\(item\)\}/);
+});
+
+test("rich text image chip opens an image picker", () => {
   assert.match(source, /onClick=\{openImagePicker\}/);
   assert.match(source, /<input[\s\S]*type="file"[\s\S]*accept="image\/\*"/);
 });
