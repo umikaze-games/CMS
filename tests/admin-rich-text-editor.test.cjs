@@ -20,3 +20,16 @@ test("rich text toolbar renders one bold button", () => {
   const boldButtonCount = (source.match(/label=\{labels\.bold\}/g) ?? []).length;
   assert.equal(boldButtonCount, 1);
 });
+
+test("rich text status chips are insert buttons", () => {
+  assert.match(source, /onClick=\{insertEmoji\}/);
+  assert.match(source, /onClick=\{openImagePicker\}/);
+  assert.match(source, /<input[\s\S]*type="file"[\s\S]*accept="image\/\*"/);
+});
+
+test("rich text image insertion uploads images instead of embedding base64", () => {
+  assert.match(source, /async function uploadInlineImage/);
+  assert.match(source, /fetch\("\/api\/admin\/uploads"/);
+  assert.match(source, /insertInlineImage\(data\.url\)/);
+  assert.doesNotMatch(source, /readAsDataURL/);
+});

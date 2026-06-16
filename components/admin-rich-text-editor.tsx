@@ -19,6 +19,7 @@ import {
 const labels = {
   emoji: "\u7d75\u6587\u5b57OK",
   image: "\u753b\u50cf\u8cbc\u308a\u4ed8\u3051\u5bfe\u5fdc",
+  imageUploadFailed: "\u753b\u50cf\u306e\u633f\u5165\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
   bold: "\u592a\u5b57",
   strike: "\u53d6\u308a\u6d88\u3057\u7dda",
   left: "\u5de6\u63c3\u3048",
@@ -77,6 +78,7 @@ export function AdminRichTextEditor({
   placeholder
 }: AdminRichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const lastExternalValue = useRef(value);
   const dragStartCellRef = useRef<HTMLTableCellElement | null>(null);
@@ -90,6 +92,7 @@ export function AdminRichTextEditor({
   const [columns, setColumns] = useState(3);
   const [selectedCells, setSelectedCells] = useState<HTMLTableCellElement[]>([]);
   const [isSelectingCells, setIsSelectingCells] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     strikeThrough: false,
@@ -205,6 +208,45 @@ export function AdminRichTextEditor({
     saveSelection();
     syncValue();
     updateToolbarState();
+  }
+
+  function insertEmoji() {
+    runCommand("insertText", "\ud83d\ude0a");
+  }
+
+  function openImagePicker() {
+    saveSelection();
+    imageInputRef.current?.click();
+  }
+
+  async function insertImageFile(file: File) {
+    setIsUploadingImage(true);
+    try {
+      const data = await uploadInlineImage(file);
+      insertInlineImage(data.url);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : labels.imageUploadFailed);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }
+
+  async function handleImageInputChange(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    await insertImageFile(file);
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+  }
+
+  function insertInlineImage(url: string) {
+    runCommand(
+      "insertHTML",
+      `<p><img src="${escapeAttribute(url)}" alt="inline-image" class="notice-inline-image"></p>`
+    );
   }
 
   function applyTextColor(nextColor: string) {
@@ -339,24 +381,42 @@ export function AdminRichTextEditor({
     }
 
     event.preventDefault();
-    const dataUrl = await fileToDataUrl(image);
-    runCommand(
-      "insertHTML",
-      `<p><img src="${dataUrl}" alt="pasted-image" class="notice-inline-image"></p>`
-    );
+    await insertImageFile(image);
   }
 
   return (
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-700">
+        <button
+          type="button"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={insertEmoji}
+          title={labels.emoji}
+          aria-label={labels.emoji}
+          className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-700 transition hover:bg-cyan-100"
+        >
           <SmilePlus size={14} />
           {labels.emoji}
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">
+        </button>
+        <button
+          type="button"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={openImagePicker}
+          disabled={isUploadingImage}
+          title={labels.image}
+          aria-label={labels.image}
+          className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-wait disabled:opacity-60"
+        >
           <ImagePlus size={14} />
           {labels.image}
-        </span>
+        </button>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(event) => void handleImageInputChange(event.target.files?.[0] ?? null)}
+        />
         <div className="relative ml-auto flex flex-wrap items-center justify-end gap-1 rounded-xl border border-slate-200 bg-white px-2 py-1 shadow-sm">
           <ToolButton
             label={labels.bold}
@@ -725,6 +785,10 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#039;");
 }
 
+function escapeAttribute(value: string) {
+  return escapeHtml(value);
+}
+
 function clampNumber(value: number, min: number, max: number) {
   if (Number.isNaN(value)) {
     return min;
@@ -732,11 +796,22 @@ function clampNumber(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+async function uploadInlineImage(file: File) {
+  const formData = new FormData();
+  formData.set("image", file);
+
+  const response = await fetch("/api/admin/uploads", {
+    method: "POST",
+    body: formData
   });
+  const data = (await response.json().catch(() => null)) as {
+    url?: string;
+    message?: string;
+  } | null;
+
+  if (!response.ok || !data?.url) {
+    throw new Error(data?.message || labels.imageUploadFailed);
+  }
+
+  return { url: data.url };
 }
