@@ -43,11 +43,11 @@ const labels = {
   useReservation: "\u4e88\u7d04\u516c\u958b\u65e5\u6642",
   publishHelp:
     "\u6307\u5b9a\u3057\u305f\u5e74\u6708\u65e5\u6642\u5206\u4ee5\u964d\u306b\u30d5\u30ed\u30f3\u30c8\u5074\u3078\u8868\u793a\u3055\u308c\u307e\u3059\u3002",
-  newBadgeStart: "NEW\u30d0\u30c3\u30b8\u958b\u59cb",
-  newBadgeEnd: "NEW\u30d0\u30c3\u30b8\u7d42\u4e86",
-  newBadgePeriod: "NEW\u30d0\u30c3\u30b8\u671f\u9593",
+  newBadgeStart: "\u958b\u59cb\u65e5\u6642",
+  newBadgeEnd: "\u7d42\u4e86\u65e5\u6642",
+  newBadgePeriod: "NEW\u8868\u793a\u671f\u9593",
   newBadgeHelp:
-    "\u672a\u5909\u66f4\u306e\u5834\u5408\u306f\u516c\u958b\u65e5\u6642\u304b\u30897\u65e5\u9593NEW\u30d0\u30c3\u30b8\u3092\u8868\u793a\u3057\u307e\u3059\u3002",
+    "\u958b\u59cb\u65e5\u6642\u306f\u516c\u958b\u65e5\u6642\u3092\u521d\u671f\u5024\u306b\u3057\u3001\u7d42\u4e86\u65e5\u6642\u306f7\u65e5\u5f8c\u3092\u81ea\u52d5\u8a2d\u5b9a\u3057\u307e\u3059\u3002\u7d42\u4e86\u65e5\u6642\u306f\u624b\u52d5\u3067\u5909\u66f4\u3067\u304d\u307e\u3059\u3002",
   sortOrder: "\u8868\u793a\u9806",
   pin: "TOP\u306b\u56fa\u5b9a\u3059\u308b",
   pinHelp:
@@ -226,6 +226,15 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
     }
   }
 
+  function handleNewBadgeStartChange(nextValue: string) {
+    const currentDefaultEnd = addDaysLocalDateTime(newBadgeStartValue, 7);
+    setNewBadgeStartValue(nextValue);
+
+    if (newBadgeEndValue === currentDefaultEnd) {
+      setNewBadgeEndValue(addDaysLocalDateTime(nextValue, 7));
+    }
+  }
+
   function handleGameChange(nextGameId: string) {
     setGameValue(nextGameId);
     const params = new URLSearchParams(searchParams.toString());
@@ -353,15 +362,21 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
         />
       </div>
 
-      <fieldset className="rounded-xl border border-cyan-100 bg-cyan-50/35 px-4 pb-4 pt-3">
-        <legend className="px-1 text-sm font-black text-ink">{labels.newBadgePeriod}</legend>
-        <div className="mt-2 grid items-start gap-3 md:grid-cols-[1fr_auto_1fr]">
+      <fieldset className="rounded-xl border border-cyan-100 bg-cyan-50/35 p-4">
+        <legend className="sr-only">{labels.newBadgePeriod}</legend>
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-sm font-black text-ink">{labels.newBadgePeriod}</p>
+            <p className="mt-1 text-xs font-semibold text-muted">{labels.newBadgeHelp}</p>
+          </div>
+        </div>
+        <div className="grid items-start gap-3 md:grid-cols-[1fr_auto_1fr]">
           <AdminDateTimePicker
             label={labels.newBadgeStart}
             name="new_badge_start_at"
             value={newBadgeStartValue}
-            onChange={setNewBadgeStartValue}
-            help={labels.newBadgeHelp}
+            onChange={handleNewBadgeStartChange}
+            reserveHelp
           />
           <div className="hidden h-12 items-center px-1 pt-7 text-lg font-black text-cyan-700 md:flex">
             ～
