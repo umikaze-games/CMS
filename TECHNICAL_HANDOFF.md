@@ -415,6 +415,19 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
+图片上传还需要 Nginx 放行足够大的请求体。应用自己的 banner 校验是 10MiB，Nginx 建议多留一点 multipart 表单空间:
+
+```nginx
+client_max_body_size 12m;
+```
+
+如果线上保存 2MB 左右图片也返回 `413 Request Entity Too Large`，优先检查这个配置是否在当前 `server` 或 `http` 块中生效。修改后执行:
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
 ## 9. HTTPS 和域名
 
 域名:

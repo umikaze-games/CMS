@@ -33,7 +33,7 @@ test("uses API JSON message when present", async () => {
   assert.equal(await getSaveResponseMessage(response), "入力内容を確認してください。");
 });
 
-test("turns HTML 413 responses into a useful upload-size message", async () => {
+test("turns HTML 413 responses into a server upload limit message", async () => {
   const response = new Response("<html><body>413 Request Entity Too Large</body></html>", {
     status: 413,
     headers: { "content-type": "text/html" }
@@ -41,7 +41,7 @@ test("turns HTML 413 responses into a useful upload-size message", async () => {
 
   assert.equal(
     await getSaveResponseMessage(response),
-    "画像サイズが大きすぎます。10MB以下の画像を選択してください。"
+    "サーバーのアップロード上限を超えました。管理者にNginxのclient_max_body_size設定を確認してください。"
   );
 });
 

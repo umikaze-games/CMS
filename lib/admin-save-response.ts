@@ -1,6 +1,6 @@
-import { adminBannerTooLargeMessage } from "./admin-upload";
-
 const fallbackSaveError = "保存に失敗しました。時間をおいてもう一度お試しください。";
+const requestTooLargeError =
+  "サーバーのアップロード上限を超えました。管理者にNginxのclient_max_body_size設定を確認してください。";
 
 type ErrorPayload = {
   message?: unknown;
@@ -8,7 +8,7 @@ type ErrorPayload = {
 
 export async function getSaveResponseMessage(response: Response) {
   if (response.status === 413) {
-    return adminBannerTooLargeMessage;
+    return requestTooLargeError;
   }
 
   const contentType = response.headers.get("content-type") ?? "";

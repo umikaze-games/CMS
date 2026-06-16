@@ -109,6 +109,17 @@ pm2 restart notice-cms --update-env
 pm2 save
 ```
 
+如果保存 2MB 以上图片时出现 `413` 或“服务器上传上限”提示，确认 Nginx 站点配置内有以下设置，并重载 Nginx:
+
+```nginx
+client_max_body_size 12m;
+```
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
 确认当前服务器版本:
 
 ```bash
@@ -128,7 +139,7 @@ pm2 status
 - 公告发布时间、NEW 标签时间已按东京时间处理。
 - 富文本正文的 HTML 摘要会去掉标签，不再在前台露出 `<span>` 等源码。
 - 图片上传改为文件路径，不再把大图以 base64 塞进公告 JSON。
-- 图片大小限制为 10MB。
+- 图片大小限制为 10MB，Nginx `client_max_body_size` 需要设置为 `12m` 以上。
 - 富文本工具栏的 emoji、图片、颜色、表格弹窗已改成点击按钮打开、点击正文或外部关闭。
 
 ## 当前仍需注意
