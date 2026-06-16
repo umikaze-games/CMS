@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { FileText, Save, UploadCloud } from "lucide-react";
 import {
@@ -247,13 +247,26 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
     setBodyValue(applyTemplateVariables(template.body, gameName));
   }
 
-  async function handleBannerChange(file: File | null) {
+  async function handleBannerChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0] ?? null;
+
     if (!file) {
+      setMessage(null);
       setBannerFileName(null);
       setBannerPreview(notice?.bannerImage ?? null);
       return;
     }
 
+    const bannerError = validateAdminBannerFile(file);
+    if (bannerError) {
+      setMessage(bannerError);
+      setBannerFileName(null);
+      setBannerPreview(notice?.bannerImage ?? null);
+      event.currentTarget.value = "";
+      return;
+    }
+
+    setMessage(null);
     setBannerFileName(file.name);
     setBannerPreview(await fileToDataUrl(file));
   }
@@ -392,7 +405,7 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(event) => void handleBannerChange(event.target.files?.[0] ?? null)}
+          onChange={(event) => void handleBannerChange(event)}
         />
       </div>
 

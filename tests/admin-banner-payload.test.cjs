@@ -13,3 +13,16 @@ test("notice update API does not read existing banner image from request body", 
 
   assert.equal(source.includes("current_banner_image"), false);
 });
+
+test("banner selection clears stale size errors for valid files", () => {
+  const source = readFileSync("components/admin-notice-form.tsx", "utf8");
+  const handlerBody =
+    source.match(/async function handleBannerChange\([^)]*\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+
+  assert.match(handlerBody, /const bannerError = validateAdminBannerFile\(file\)/);
+  assert.match(handlerBody, /if \(bannerError\) \{/);
+  assert.match(handlerBody, /setMessage\(bannerError\)/);
+  assert.match(handlerBody, /event\.currentTarget\.value = ""/);
+  assert.match(handlerBody, /setMessage\(null\)/);
+  assert.match(handlerBody, /setBannerPreview\(await fileToDataUrl\(file\)\)/);
+});
