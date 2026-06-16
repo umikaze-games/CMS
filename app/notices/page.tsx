@@ -13,7 +13,7 @@ const emptyTitle = "\u8a72\u5f53\u3059\u308b\u304a\u77e5\u3089\u305b\u306f\u3042
 const emptyHelp = "\u5225\u306e\u30ab\u30c6\u30b4\u30ea\u30fc\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
 const prevLabel = "\u524d\u306e\u30da\u30fc\u30b8";
 const nextLabel = "\u6b21\u306e\u30da\u30fc\u30b8";
-const pageSize = 20;
+const pageSize = 8;
 
 type NoticesPageProps = {
   searchParams: Promise<{
@@ -32,6 +32,11 @@ export default async function NoticesPage({ searchParams }: NoticesPageProps) {
   const pageNotices = notices.slice((safePage - 1) * pageSize, safePage * pageSize);
   const featuredNotice = pageNotices[0];
   const restNotices = featuredNotice ? pageNotices.slice(1) : [];
+  function categoryHref(categoryId: string) {
+    const query = new URLSearchParams();
+    query.set("category", categoryId);
+    return `/notices?${query.toString()}`;
+  }
   const pageHref = (page: number) => {
     const query = new URLSearchParams();
     if (params.category) {
@@ -83,7 +88,7 @@ export default async function NoticesPage({ searchParams }: NoticesPageProps) {
             {categories.map((category) => (
               <Link
                 key={category.id}
-                href={`/notices?category=${category.id}`}
+                href={categoryHref(category.id)}
                 className={`inline-flex h-7 w-28 items-center justify-center whitespace-nowrap rounded-md px-3 text-xs font-black transition hover:-translate-y-0.5 ${
                   params.category === category.id
                     ? "text-white shadow-[0_14px_30px_rgba(8,145,178,0.16)]"
