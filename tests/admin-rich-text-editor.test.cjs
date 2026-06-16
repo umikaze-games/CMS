@@ -45,6 +45,16 @@ test("rich text emoji picker stays open after inserting a choice", () => {
   assert.doesNotMatch(insertEmojiBody, /setShowEmojiMenu\(false\)/);
 });
 
+test("rich text popup tool openers do not toggle closed from their buttons", () => {
+  assert.match(source, /function openTableMenu\(\)/);
+  assert.match(source, /function openCellColorMenu\(\)/);
+  assert.match(source, /function openTextColorMenu\(\)/);
+  assert.match(source, /setShowTableMenu\(true\)/);
+  assert.match(source, /setShowCellColorMenu\(true\)/);
+  assert.match(source, /setShowTextColorMenu\(true\)/);
+  assert.doesNotMatch(source, /setShow(?:Table|CellColor|TextColor)Menu\(\(current\) => !current\)/);
+});
+
 test("rich text image chip opens an image picker", () => {
   assert.match(source, /onClick=\{openImagePicker\}/);
   assert.match(source, /<input[\s\S]*type="file"[\s\S]*accept="image\/\*"/);

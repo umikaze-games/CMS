@@ -1082,6 +1082,30 @@ export function AdminRichTextEditor({
     imageInputRef.current?.click();
   }
 
+  function openTableMenu() {
+    saveSelection();
+    setShowTableMenu(true);
+    setShowEmojiMenu(false);
+    setShowTextColorMenu(false);
+    setShowCellColorMenu(false);
+  }
+
+  function openCellColorMenu() {
+    saveSelection();
+    setShowCellColorMenu(true);
+    setShowEmojiMenu(false);
+    setShowTextColorMenu(false);
+    setShowTableMenu(false);
+  }
+
+  function openTextColorMenu() {
+    saveSelection();
+    setShowTextColorMenu(true);
+    setShowEmojiMenu(false);
+    setShowCellColorMenu(false);
+    setShowTableMenu(false);
+  }
+
   async function insertImageFile(file: File) {
     setIsUploadingImage(true);
     try {
@@ -1369,12 +1393,7 @@ export function AdminRichTextEditor({
           <div className="relative">
             <ToolButton
               label={labels.table}
-              onClick={() => {
-                saveSelection();
-                setShowTableMenu((current) => !current);
-                setShowTextColorMenu(false);
-                setShowCellColorMenu(false);
-              }}
+              onClick={openTableMenu}
             >
               <Table2 size={16} />
             </ToolButton>
@@ -1405,12 +1424,7 @@ export function AdminRichTextEditor({
             label={labels.cellColor}
             icon={<PaintBucket size={16} />}
             open={showCellColorMenu}
-            onOpen={() => {
-              saveSelection();
-              setShowCellColorMenu((current) => !current);
-              setShowTextColorMenu(false);
-              setShowTableMenu(false);
-            }}
+            onOpen={openCellColorMenu}
             onClose={() => setShowCellColorMenu(false)}
             color={cellCustomColor}
             setColor={setCellCustomColor}
@@ -1421,12 +1435,7 @@ export function AdminRichTextEditor({
             label={labels.color}
             icon={<span className="text-sm font-black leading-none text-slate-700">A</span>}
             open={showTextColorMenu}
-            onOpen={() => {
-              saveSelection();
-              setShowTextColorMenu((current) => !current);
-              setShowCellColorMenu(false);
-              setShowTableMenu(false);
-            }}
+            onOpen={openTextColorMenu}
             onClose={() => setShowTextColorMenu(false)}
             color={textCustomColor}
             selectedColor={textColor}
