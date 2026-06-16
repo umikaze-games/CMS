@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarDays } from "lucide-react";
 import { CategoryBadge } from "@/components/category-badge";
 import { NoticeBody } from "@/components/notice-body";
 import { formatDateWithTime } from "@/lib/date";
+import { isLocalNoticeUploadUrl } from "@/lib/local-upload-path";
 import { getNoticeById } from "@/lib/notices";
 
 const backLabel = "\u304a\u77e5\u3089\u305b\u4e00\u89a7\u3078\u623b\u308b";
@@ -37,6 +38,7 @@ export default async function NoticeDetailPage({ params }: NoticeDetailPageProps
                 fill
                 priority
                 sizes="100vw"
+                unoptimized={isLocalNoticeUploadUrl(notice.bannerImage)}
                 className="object-cover opacity-24 saturate-125"
               />
             ) : null}
@@ -79,6 +81,7 @@ export default async function NoticeDetailPage({ params }: NoticeDetailPageProps
                   alt=""
                   fill
                   sizes="(min-width: 1024px) 1100px, 100vw"
+                  unoptimized={isLocalNoticeUploadUrl(notice.bannerImage)}
                   className="object-cover"
                 />
               </div>

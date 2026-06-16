@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, Pin, Zap } from "lucide-react";
 import { CategoryBadge } from "@/components/category-badge";
 import { formatDateWithTime } from "@/lib/date";
+import { isLocalNoticeUploadUrl } from "@/lib/local-upload-path";
 import { getNoticeExcerpt } from "@/lib/notice-text";
 import type { NoticeWithCategory } from "@/lib/types";
 
@@ -30,6 +31,7 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
             alt=""
             fill
             sizes="(min-width: 768px) 220px, 100vw"
+            unoptimized={isLocalNoticeUploadUrl(notice.bannerImage)}
             className="object-cover saturate-125 transition duration-700 group-hover:scale-105"
           />
         ) : (

@@ -1,16 +1,19 @@
 import { promises as fs } from "fs";
-import path from "path";
 import { createHash } from "crypto";
+import {
+  getLocalNoticeUploadDir,
+  getLocalNoticeUploadPath,
+  getLocalNoticeUploadUrl
+} from "./local-upload-path";
 import type { Notice } from "./types";
 
-const uploadUrlPrefix = "/uploads/notices/";
 const dataUrlPattern = /^data:([^;,]+)?(?:;[^,]*)?;base64,(.+)$/;
 
 export async function saveLocalBannerFile(file: File) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const fileName = createUploadFileName(file.name, file.type, buffer);
   await writeUploadFile(fileName, buffer);
-  return `${uploadUrlPrefix}${fileName}`;
+  return getLocalNoticeUploadUrl(fileName);
 }
 
 export async function migrateLocalBannerDataUrls(items: Notice[]) {
@@ -55,7 +58,7 @@ async function migrateDataUrl(noticeId: string, value: string | null) {
   const hash = createHash("sha256").update(parsed.buffer).digest("hex").slice(0, 12);
   const fileName = `${sanitizeNoticeId(noticeId)}-${hash}.${getExtension("", parsed.mimeType)}`;
   await writeUploadFile(fileName, parsed.buffer);
-  return `${uploadUrlPrefix}${fileName}`;
+  return getLocalNoticeUploadUrl(fileName);
 }
 
 function parseDataUrl(value: string) {
@@ -71,13 +74,8 @@ function parseDataUrl(value: string) {
 }
 
 async function writeUploadFile(fileName: string, buffer: Buffer) {
-  const uploadDir = getUploadDir();
-  await fs.mkdir(uploadDir, { recursive: true });
-  await fs.writeFile(path.join(uploadDir, fileName), buffer);
-}
-
-function getUploadDir() {
-  return path.join(process.cwd(), "public", "uploads", "notices");
+  await fs.mkdir(getLocalNoticeUploadDir(), { recursive: true });
+  await fs.writeFile(getLocalNoticeUploadPath(fileName), buffer);
 }
 
 function getExtension(originalName: string, mimeType: string) {
