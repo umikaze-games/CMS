@@ -45,6 +45,7 @@ const labels = {
     "\u6307\u5b9a\u3057\u305f\u5e74\u6708\u65e5\u6642\u5206\u4ee5\u964d\u306b\u30d5\u30ed\u30f3\u30c8\u5074\u3078\u8868\u793a\u3055\u308c\u307e\u3059\u3002",
   newBadgeStart: "NEW\u30d0\u30c3\u30b8\u958b\u59cb",
   newBadgeEnd: "NEW\u30d0\u30c3\u30b8\u7d42\u4e86",
+  newBadgePeriod: "NEW\u30d0\u30c3\u30b8\u671f\u9593",
   newBadgeHelp:
     "\u672a\u5909\u66f4\u306e\u5834\u5408\u306f\u516c\u958b\u65e5\u6642\u304b\u30897\u65e5\u9593NEW\u30d0\u30c3\u30b8\u3092\u8868\u793a\u3057\u307e\u3059\u3002",
   sortOrder: "\u8868\u793a\u9806",
@@ -352,22 +353,28 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <AdminDateTimePicker
-          label={labels.newBadgeStart}
-          name="new_badge_start_at"
-          value={newBadgeStartValue}
-          onChange={setNewBadgeStartValue}
-          help={labels.newBadgeHelp}
-        />
-        <AdminDateTimePicker
-          label={labels.newBadgeEnd}
-          name="new_badge_end_at"
-          value={newBadgeEndValue}
-          onChange={setNewBadgeEndValue}
-          reserveHelp
-        />
-      </div>
+      <fieldset className="rounded-xl border border-cyan-100 bg-cyan-50/35 px-4 pb-4 pt-3">
+        <legend className="px-1 text-sm font-black text-ink">{labels.newBadgePeriod}</legend>
+        <div className="mt-2 grid items-start gap-3 md:grid-cols-[1fr_auto_1fr]">
+          <AdminDateTimePicker
+            label={labels.newBadgeStart}
+            name="new_badge_start_at"
+            value={newBadgeStartValue}
+            onChange={setNewBadgeStartValue}
+            help={labels.newBadgeHelp}
+          />
+          <div className="hidden h-12 items-center px-1 pt-7 text-lg font-black text-cyan-700 md:flex">
+            ～
+          </div>
+          <AdminDateTimePicker
+            label={labels.newBadgeEnd}
+            name="new_badge_end_at"
+            value={newBadgeEndValue}
+            onChange={setNewBadgeEndValue}
+            reserveHelp
+          />
+        </div>
+      </fieldset>
 
       <div className="grid gap-2">
         <label className="text-sm font-bold text-ink" htmlFor="banner">
