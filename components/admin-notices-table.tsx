@@ -37,6 +37,9 @@ const labels = {
   dragging: "\u79fb\u52d5\u4e2d",
   prevPage: "\u524d\u306e\u30da\u30fc\u30b8",
   nextPage: "\u6b21\u306e\u30da\u30fc\u30b8",
+  pageStatus: "\u30da\u30fc\u30b8",
+  jumpPage: "\u79fb\u52d5",
+  pageInput: "\u30da\u30fc\u30b8\u756a\u53f7",
   allCategories: "\u3059\u3079\u3066",
   allStatuses: "\u3059\u3079\u3066"
 };
@@ -54,7 +57,7 @@ const statusClasses = {
 };
 
 const statusOptions: NoticeStatus[] = ["draft", "published", "hidden"];
-const pageSize = 20;
+const pageSize = 15;
 
 type AdminNoticesTableProps = {
   notices: NoticeWithCategory[];
@@ -83,6 +86,7 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
   const [statusFilter, setStatusFilter] = useState<NoticeStatus | "all">("all");
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageInputValue, setPageInputValue] = useState("1");
   const [confirmAction, setConfirmAction] = useState<null | {
     type: "hide" | "delete" | "status";
     notice: NoticeWithCategory;
@@ -126,6 +130,15 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
   useEffect(() => {
     setCurrentPage(1);
   }, [categoryFilter, statusFilter]);
+
+  useEffect(() => {
+    setPageInputValue(String(safePage));
+  }, [safePage]);
+
+  function jumpToPage() {
+    const requestedPage = Math.max(1, Math.min(totalPages, Number(pageInputValue)));
+    setCurrentPage(Number.isFinite(requestedPage) ? requestedPage : safePage);
+  }
 
   function moveItem(fromId: string, toId: string, position: "before" | "after") {
     if (!fromId || !toId || fromId === toId) {
@@ -400,7 +413,10 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
         </table>
       </div>
       {totalPages > 1 ? (
-        <nav className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-200 bg-white px-5 py-4" aria-label="pagination">
+        <nav
+          className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-4"
+          aria-label="pagination"
+        >
           <button
             type="button"
             onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
@@ -410,20 +426,35 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
             <ChevronLeft size={15} />
             {labels.prevPage}
           </button>
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+          <form
+            className="flex flex-wrap items-center justify-center gap-2 text-xs font-black text-slate-600"
+            onSubmit={(event) => {
+              event.preventDefault();
+              jumpToPage();
+            }}
+          >
+            <span>
+              {labels.pageStatus} {safePage} / {totalPages}
+            </span>
+            <label className="sr-only" htmlFor="notice-page-input">
+              {labels.pageInput}
+            </label>
+            <input
+              id="notice-page-input"
+              type="number"
+              min={1}
+              max={totalPages}
+              value={pageInputValue}
+              onChange={(event) => setPageInputValue(event.target.value)}
+              className="h-9 w-20 rounded-lg border border-line bg-white px-3 text-center text-xs font-black text-ink outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+            />
             <button
-              key={page}
-              type="button"
-              onClick={() => setCurrentPage(page)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-xs font-black transition ${
-                safePage === page
-                  ? "bg-cyan-500 text-white shadow-[0_12px_26px_rgba(8,145,178,0.20)]"
-                  : "bg-slate-50 text-slate-700 shadow-sm hover:bg-cyan-50 hover:text-cyan-700"
-              }`}
+              type="submit"
+              className="inline-flex h-9 items-center justify-center rounded-lg bg-cyan-50 px-3 text-xs font-black text-cyan-700 shadow-sm transition hover:bg-cyan-100"
             >
-              {page}
+              {labels.jumpPage}
             </button>
-          ))}
+          </form>
           <button
             type="button"
             onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
