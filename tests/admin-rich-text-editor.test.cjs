@@ -53,10 +53,16 @@ test("rich text emoji picker does not toggle closed from the opener", () => {
   assert.doesNotMatch(source, /setShowEmojiMenu\(\(current\) => !current\)/);
 });
 
-test("rich text emoji picker stays open after inserting a choice", () => {
+test("rich text emoji picker closes after inserting a choice", () => {
   const insertEmojiBody = source.match(/function insertEmoji\(value: string\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
   assert.match(insertEmojiBody, /runCommand\("insertText", value\)/);
-  assert.doesNotMatch(insertEmojiBody, /setShowEmojiMenu\(false\)/);
+  assert.match(insertEmojiBody, /setShowEmojiMenu\(false\)/);
+});
+
+test("rich text emoji picker has an explicit close button", () => {
+  const emojiPickerBody =
+    source.match(/\{showEmojiMenu \? \([\s\S]*?\) : null\}/)?.[0] ?? "";
+  assert.match(emojiPickerBody, /<PanelHeader title=\{labels\.emoji\} onClose=\{\(\) => setShowEmojiMenu\(false\)\} \/>/);
 });
 
 test("rich text emoji picker closes from outside editor clicks", () => {
