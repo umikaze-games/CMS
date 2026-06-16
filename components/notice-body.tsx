@@ -44,6 +44,15 @@ export function NoticeBody({ body }: NoticeBodyProps) {
 function normalizeLegacyImages(body: string) {
   return body.replace(
     /!\[(.*?)\]\((.*?)\)/g,
-    '<img src="$2" alt="$1" class="notice-inline-image">'
+    (_match, alt: string, src: string) =>
+      `<img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}" class="notice-inline-image">`
   );
+}
+
+function escapeAttribute(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }

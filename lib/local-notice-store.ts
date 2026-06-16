@@ -75,7 +75,11 @@ async function readStore() {
       await writeStore(migrated.items);
     }
     return migrated.items;
-  } catch {
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+
     await writeStore(seedNotices);
     return [...seedNotices];
   }
@@ -83,4 +87,13 @@ async function readStore() {
 
 async function writeStore(items: Notice[]) {
   await fs.writeFile(storePath, JSON.stringify(items, null, 2), "utf8");
+}
+
+function isNotFoundError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "ENOENT"
+  );
 }

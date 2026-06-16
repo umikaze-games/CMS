@@ -8,4 +8,5 @@ dist
 .local-notices.json
 .tmp-tests
 .tmp-tests-banner-*
+.tmp-tests-local-notice-*
 public/uploads/
