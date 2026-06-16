@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   deleteLocalNotice,
+  getLocalNotices,
   updateLocalNotice,
   updateLocalNoticeStatus
 } from "@/lib/local-notice-store";
@@ -23,8 +24,11 @@ export async function PUT(request: Request, context: RouteContext) {
     try {
       const formData = await request.formData();
       const values = readNoticeFormData(formData);
-      const currentBannerImage = String(formData.get("current_banner_image") ?? "") || null;
-      const bannerImage = values.banner ? await fileToDataUrl(values.banner) : currentBannerImage;
+      const currentNotices = await getLocalNotices();
+      const currentNotice = currentNotices.find((item) => item.id === id);
+      const bannerImage = values.banner
+        ? await fileToDataUrl(values.banner)
+        : currentNotice?.bannerImage ?? null;
       await updateLocalNotice(id, {
         gameId: values.gameId,
         categoryId: values.categoryId,
@@ -51,7 +55,7 @@ export async function PUT(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const formData = await request.formData();
     const values = readNoticeFormData(formData);
-    let bannerImage = String(formData.get("current_banner_image") ?? "") || null;
+    let bannerImage: string | null | undefined;
 
     if (values.banner) {
       const fileName = slugifyFileName(values.banner.name);
@@ -79,22 +83,27 @@ export async function PUT(request: Request, context: RouteContext) {
         .neq("id", id);
     }
 
+    const updatePayload: Record<string, string | number | boolean | null> = {
+      game_id: values.gameId,
+      category_id: values.categoryId,
+      title: values.title,
+      body: values.body,
+      status: values.status,
+      is_pinned: values.isPinned,
+      publish_at: values.publishAt,
+      new_badge_start_at: values.newBadgeStartAt,
+      new_badge_end_at: values.newBadgeEndAt,
+      sort_order: values.sortOrder,
+      updated_at: new Date().toISOString()
+    };
+
+    if (bannerImage !== undefined) {
+      updatePayload.banner_image = bannerImage;
+    }
+
     const { error } = await supabaseAdmin
       .from("notices")
-      .update({
-        game_id: values.gameId,
-        category_id: values.categoryId,
-        title: values.title,
-        body: values.body,
-        banner_image: bannerImage,
-        status: values.status,
-        is_pinned: values.isPinned,
-        publish_at: values.publishAt,
-        new_badge_start_at: values.newBadgeStartAt,
-        new_badge_end_at: values.newBadgeEndAt,
-        sort_order: values.sortOrder,
-        updated_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq("id", id);
 
     if (error) {

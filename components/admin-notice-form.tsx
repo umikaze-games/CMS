@@ -268,8 +268,6 @@ export function AdminNoticeForm({ categories, games, currentGameId, notice }: Ad
           {message}
         </div>
       ) : null}
-      <input type="hidden" name="current_banner_image" value={notice?.bannerImage ?? ""} />
-
       <div className="grid gap-4 md:grid-cols-2">
         <AdminSelect
           label={labels.game}
