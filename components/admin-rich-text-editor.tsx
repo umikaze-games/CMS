@@ -1215,11 +1215,33 @@ export function AdminRichTextEditor({
     setShowEmojiMenu(false);
   }
 
+  function closeFloatingMenus() {
+    if (showEmojiMenu) {
+      setShowEmojiMenu(false);
+    }
+    if (showTextColorMenu) {
+      setShowTextColorMenu(false);
+    }
+    if (showCellColorMenu) {
+      setShowCellColorMenu(false);
+    }
+    if (showTableMenu) {
+      setShowTableMenu(false);
+    }
+  }
+
   function clearSelectedCells() {
-    editorRef.current?.querySelectorAll(".notice-selected-cell").forEach((cell) => {
+    const highlightedCells = Array.from(
+      editorRef.current?.querySelectorAll(".notice-selected-cell") ?? []
+    );
+
+    highlightedCells.forEach((cell) => {
       cell.classList.remove("notice-selected-cell");
     });
-    setSelectedCells([]);
+
+    if (highlightedCells.length > 0 || selectedCells.length > 0) {
+      setSelectedCells([]);
+    }
   }
 
   function selectCells(cells: HTMLTableCellElement[]) {
@@ -1265,14 +1287,10 @@ export function AdminRichTextEditor({
   }
 
   function handleEditorPointerDown() {
-    setShowEmojiMenu(false);
-    setShowTextColorMenu(false);
-    setShowCellColorMenu(false);
-    setShowTableMenu(false);
+    closeFloatingMenus();
   }
 
   function handleEditorMouseDown(event: MouseEvent<HTMLDivElement>) {
-    setShowEmojiMenu(false);
     const cell = getCellFromEvent(event);
     if (!cell) {
       clearSelectedCells();
@@ -1299,7 +1317,9 @@ export function AdminRichTextEditor({
   }
 
   function handleEditorMouseUp() {
-    setIsSelectingCells(false);
+    if (isSelectingCells) {
+      setIsSelectingCells(false);
+    }
     dragStartCellRef.current = null;
     saveSelection();
   }

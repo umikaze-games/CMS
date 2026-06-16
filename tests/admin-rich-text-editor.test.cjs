@@ -93,7 +93,7 @@ test("rich text emoji picker closes from outside editor clicks", () => {
   const editorPointerDownBody =
     source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
       ?.[1] ?? "";
-  assert.match(editorPointerDownBody, /setShowEmojiMenu\(false\)/);
+  assert.match(editorPointerDownBody, /closeFloatingMenus\(\)/);
 });
 
 test("rich text popup tool openers do not toggle closed from their buttons", () => {
@@ -129,13 +129,34 @@ test("rich text color popups close from outside clicks", () => {
 });
 
 test("rich text editor blank clicks close text adjustment popups", () => {
+  assert.match(source, /function closeFloatingMenus\(\) \{/);
+  assert.match(source, /if \(showEmojiMenu\) \{\s*setShowEmojiMenu\(false\);\s*\}/);
+  assert.match(source, /if \(showTextColorMenu\) \{\s*setShowTextColorMenu\(false\);\s*\}/);
+  assert.match(source, /if \(showCellColorMenu\) \{\s*setShowCellColorMenu\(false\);\s*\}/);
+  assert.match(source, /if \(showTableMenu\) \{\s*setShowTableMenu\(false\);\s*\}/);
+
   const editorPointerDownBody =
     source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
       ?.[1] ?? "";
-  assert.match(editorPointerDownBody, /setShowEmojiMenu\(false\)/);
-  assert.match(editorPointerDownBody, /setShowTextColorMenu\(false\)/);
-  assert.match(editorPointerDownBody, /setShowCellColorMenu\(false\)/);
-  assert.match(editorPointerDownBody, /setShowTableMenu\(false\)/);
+  assert.match(editorPointerDownBody, /closeFloatingMenus\(\)/);
+});
+
+test("rich text editor text clicks avoid unnecessary state updates", () => {
+  const clearSelectedCellsBody =
+    source.match(/function clearSelectedCells\(\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.match(clearSelectedCellsBody, /const highlightedCells = Array\.from/);
+  assert.match(clearSelectedCellsBody, /if \(highlightedCells\.length > 0 \|\| selectedCells\.length > 0\) \{\s*setSelectedCells\(\[\]\);\s*\}/);
+
+  const editorMouseDownBody =
+    source.match(/function handleEditorMouseDown\(event: MouseEvent<HTMLDivElement>\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.doesNotMatch(editorMouseDownBody, /setShowEmojiMenu\(false\)/);
+
+  const editorMouseUpBody =
+    source.match(/function handleEditorMouseUp\(\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.match(editorMouseUpBody, /if \(isSelectingCells\) \{\s*setIsSelectingCells\(false\);\s*\}/);
 });
 
 test("rich text editor mouseup does not re-render toolbar state while focusing text", () => {
