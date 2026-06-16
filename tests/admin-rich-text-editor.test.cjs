@@ -68,6 +68,22 @@ test("rich text popup tool openers do not toggle closed from their buttons", () 
   assert.doesNotMatch(source, /setShow(?:Table|CellColor|TextColor)Menu\(\(current\) => !current\)/);
 });
 
+test("rich text table popup closes from outside clicks", () => {
+  assert.match(source, /tableMenuRef/);
+  assert.match(source, /function handleTableOutsideClick\(event: globalThis\.MouseEvent\)/);
+  assert.match(source, /window\.addEventListener\("mousedown", handleTableOutsideClick\)/);
+  assert.match(source, /window\.removeEventListener\("mousedown", handleTableOutsideClick\)/);
+  assert.match(source, /ref=\{tableMenuRef\}/);
+});
+
+test("rich text color popups close from outside clicks", () => {
+  assert.match(source, /const menuRef = useRef<HTMLDivElement>\(null\)/);
+  assert.match(source, /function handleOutsideClick\(event: globalThis\.MouseEvent\)/);
+  assert.match(source, /if \(!menuRef\.current\?\.contains\(event\.target as Node\)\) \{\s*onClose\(\);/);
+  assert.match(source, /window\.addEventListener\("mousedown", handleOutsideClick\)/);
+  assert.match(source, /window\.removeEventListener\("mousedown", handleOutsideClick\)/);
+});
+
 test("rich text image chip opens an image picker", () => {
   assert.match(source, /onClick=\{openImagePicker\}/);
   assert.match(source, /<input[\s\S]*type="file"[\s\S]*accept="image\/\*"/);

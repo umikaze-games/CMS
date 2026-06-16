@@ -929,6 +929,7 @@ export function AdminRichTextEditor({
 }: AdminRichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const emojiMenuRef = useRef<HTMLDivElement>(null);
+  const tableMenuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const lastExternalValue = useRef(value);
@@ -995,6 +996,21 @@ export function AdminRichTextEditor({
     window.addEventListener("mousedown", handleEmojiOutsideClick);
     return () => window.removeEventListener("mousedown", handleEmojiOutsideClick);
   }, [showEmojiMenu]);
+
+  useEffect(() => {
+    if (!showTableMenu) {
+      return;
+    }
+
+    function handleTableOutsideClick(event: globalThis.MouseEvent) {
+      if (!tableMenuRef.current?.contains(event.target as Node)) {
+        setShowTableMenu(false);
+      }
+    }
+
+    window.addEventListener("mousedown", handleTableOutsideClick);
+    return () => window.removeEventListener("mousedown", handleTableOutsideClick);
+  }, [showTableMenu]);
 
   function getCleanEditorHtml() {
     if (!editorRef.current) {
@@ -1407,7 +1423,7 @@ export function AdminRichTextEditor({
           >
             <AlignRight size={16} />
           </ToolButton>
-          <div className="relative">
+          <div ref={tableMenuRef} className="relative">
             <ToolButton
               label={labels.table}
               onClick={openTableMenu}
