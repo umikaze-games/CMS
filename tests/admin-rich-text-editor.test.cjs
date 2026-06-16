@@ -60,10 +60,10 @@ test("rich text emoji picker closes from outside editor clicks", () => {
   assert.match(source, /onPointerDownCapture=\{handleEditorPointerDown\}/);
   assert.match(source, /ref=\{emojiMenuRef\}/);
 
-  const editorMouseDownBody =
-    source.match(/function handleEditorMouseDown\(event: MouseEvent<HTMLDivElement>\) \{([\s\S]*?)\n  \}/)
+  const editorPointerDownBody =
+    source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
       ?.[1] ?? "";
-  assert.match(editorMouseDownBody, /setShowEmojiMenu\(false\)/);
+  assert.match(editorPointerDownBody, /setShowEmojiMenu\(false\)/);
 });
 
 test("rich text popup tool openers do not toggle closed from their buttons", () => {
@@ -78,18 +78,34 @@ test("rich text popup tool openers do not toggle closed from their buttons", () 
 
 test("rich text table popup closes from outside clicks", () => {
   assert.match(source, /tableMenuRef/);
-  assert.match(source, /function handleTableOutsideClick\(event: globalThis\.MouseEvent\)/);
-  assert.match(source, /window\.addEventListener\("mousedown", handleTableOutsideClick\)/);
-  assert.match(source, /window\.removeEventListener\("mousedown", handleTableOutsideClick\)/);
+  assert.match(source, /function handleTableOutsidePointerDown\(event: globalThis\.PointerEvent\)/);
+  assert.match(
+    source,
+    /document\.addEventListener\("pointerdown", handleTableOutsidePointerDown, true\)/
+  );
+  assert.match(
+    source,
+    /document\.removeEventListener\("pointerdown", handleTableOutsidePointerDown, true\)/
+  );
   assert.match(source, /ref=\{tableMenuRef\}/);
 });
 
 test("rich text color popups close from outside clicks", () => {
   assert.match(source, /const menuRef = useRef<HTMLDivElement>\(null\)/);
-  assert.match(source, /function handleOutsideClick\(event: globalThis\.MouseEvent\)/);
+  assert.match(source, /function handleOutsidePointerDown\(event: globalThis\.PointerEvent\)/);
   assert.match(source, /if \(!menuRef\.current\?\.contains\(event\.target as Node\)\) \{\s*onClose\(\);/);
-  assert.match(source, /window\.addEventListener\("mousedown", handleOutsideClick\)/);
-  assert.match(source, /window\.removeEventListener\("mousedown", handleOutsideClick\)/);
+  assert.match(source, /document\.addEventListener\("pointerdown", handleOutsidePointerDown, true\)/);
+  assert.match(source, /document\.removeEventListener\("pointerdown", handleOutsidePointerDown, true\)/);
+});
+
+test("rich text editor blank clicks close text adjustment popups", () => {
+  const editorPointerDownBody =
+    source.match(/function handleEditorPointerDown\(\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.match(editorPointerDownBody, /setShowEmojiMenu\(false\)/);
+  assert.match(editorPointerDownBody, /setShowTextColorMenu\(false\)/);
+  assert.match(editorPointerDownBody, /setShowCellColorMenu\(false\)/);
+  assert.match(editorPointerDownBody, /setShowTableMenu\(false\)/);
 });
 
 test("rich text image chip opens an image picker", () => {

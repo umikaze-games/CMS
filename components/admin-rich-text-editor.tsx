@@ -1003,14 +1003,15 @@ export function AdminRichTextEditor({
       return;
     }
 
-    function handleTableOutsideClick(event: globalThis.MouseEvent) {
+    function handleTableOutsidePointerDown(event: globalThis.PointerEvent) {
       if (!tableMenuRef.current?.contains(event.target as Node)) {
         setShowTableMenu(false);
       }
     }
 
-    window.addEventListener("mousedown", handleTableOutsideClick);
-    return () => window.removeEventListener("mousedown", handleTableOutsideClick);
+    document.addEventListener("pointerdown", handleTableOutsidePointerDown, true);
+    return () =>
+      document.removeEventListener("pointerdown", handleTableOutsidePointerDown, true);
   }, [showTableMenu]);
 
   function getCleanEditorHtml() {
@@ -1264,6 +1265,9 @@ export function AdminRichTextEditor({
 
   function handleEditorPointerDown() {
     setShowEmojiMenu(false);
+    setShowTextColorMenu(false);
+    setShowCellColorMenu(false);
+    setShowTableMenu(false);
   }
 
   function handleEditorMouseDown(event: MouseEvent<HTMLDivElement>) {
@@ -1554,14 +1558,14 @@ function ColorMenu({
       return;
     }
 
-    function handleOutsideClick(event: globalThis.MouseEvent) {
+    function handleOutsidePointerDown(event: globalThis.PointerEvent) {
       if (!menuRef.current?.contains(event.target as Node)) {
         onClose();
       }
     }
 
-    window.addEventListener("mousedown", handleOutsideClick);
-    return () => window.removeEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("pointerdown", handleOutsidePointerDown, true);
+    return () => document.removeEventListener("pointerdown", handleOutsidePointerDown, true);
   }, [onClose, open]);
 
   return (
