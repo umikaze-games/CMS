@@ -928,6 +928,7 @@ export function AdminRichTextEditor({
   placeholder
 }: AdminRichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const emojiMenuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const lastExternalValue = useRef(value);
@@ -979,6 +980,21 @@ export function AdminRichTextEditor({
     }
     lastExternalValue.current = value;
   }, [value]);
+
+  useEffect(() => {
+    if (!showEmojiMenu) {
+      return;
+    }
+
+    function handleEmojiOutsideClick(event: globalThis.MouseEvent) {
+      if (!emojiMenuRef.current?.contains(event.target as Node)) {
+        setShowEmojiMenu(false);
+      }
+    }
+
+    window.addEventListener("mousedown", handleEmojiOutsideClick);
+    return () => window.removeEventListener("mousedown", handleEmojiOutsideClick);
+  }, [showEmojiMenu]);
 
   function getCleanEditorHtml() {
     if (!editorRef.current) {
@@ -1230,6 +1246,7 @@ export function AdminRichTextEditor({
   }
 
   function handleEditorMouseDown(event: MouseEvent<HTMLDivElement>) {
+    setShowEmojiMenu(false);
     const cell = getCellFromEvent(event);
     if (!cell) {
       clearSelectedCells();
@@ -1278,7 +1295,7 @@ export function AdminRichTextEditor({
   return (
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative">
+        <div ref={emojiMenuRef} className="relative">
           <button
             type="button"
             onMouseDown={(event) => event.preventDefault()}

@@ -45,6 +45,19 @@ test("rich text emoji picker stays open after inserting a choice", () => {
   assert.doesNotMatch(insertEmojiBody, /setShowEmojiMenu\(false\)/);
 });
 
+test("rich text emoji picker closes from outside editor clicks", () => {
+  assert.match(source, /emojiMenuRef/);
+  assert.match(source, /function handleEmojiOutsideClick\(event: globalThis\.MouseEvent\)/);
+  assert.match(source, /window\.addEventListener\("mousedown", handleEmojiOutsideClick\)/);
+  assert.match(source, /window\.removeEventListener\("mousedown", handleEmojiOutsideClick\)/);
+  assert.match(source, /ref=\{emojiMenuRef\}/);
+
+  const editorMouseDownBody =
+    source.match(/function handleEditorMouseDown\(event: MouseEvent<HTMLDivElement>\) \{([\s\S]*?)\n  \}/)
+      ?.[1] ?? "";
+  assert.match(editorMouseDownBody, /setShowEmojiMenu\(false\)/);
+});
+
 test("rich text popup tool openers do not toggle closed from their buttons", () => {
   assert.match(source, /function openTableMenu\(\)/);
   assert.match(source, /function openCellColorMenu\(\)/);
