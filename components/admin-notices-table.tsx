@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Edit, EyeOff, Trash2, Pin, Sparkles } from "lucide-react";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
@@ -84,6 +85,7 @@ type FilterOption = {
 };
 
 export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableProps) {
+  const router = useRouter();
   const [items, setItems] = useSortableNotices(notices);
   const [now, setNow] = useState(Date.now());
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -146,6 +148,34 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
   function jumpToPage() {
     const requestedPage = Math.max(1, Math.min(totalPages, Number(pageInputValue)));
     setCurrentPage(Number.isFinite(requestedPage) ? requestedPage : safePage);
+  }
+
+  function getNoticeEditHref(notice: NoticeWithCategory) {
+    const gameId = currentGameId === "all" ? notice.gameId : currentGameId;
+    return `/admin/notices/${notice.id}/edit?game=${gameId}`;
+  }
+
+  function handleRowClick(
+    event: React.MouseEvent<HTMLTableRowElement>,
+    notice: NoticeWithCategory
+  ) {
+    if (shouldIgnoreRowNavigation(event.target)) {
+      return;
+    }
+
+    router.push(getNoticeEditHref(notice));
+  }
+
+  function handleRowKeyDown(
+    event: React.KeyboardEvent<HTMLTableRowElement>,
+    notice: NoticeWithCategory
+  ) {
+    if (event.key !== "Enter" || shouldIgnoreRowNavigation(event.target)) {
+      return;
+    }
+
+    event.preventDefault();
+    router.push(getNoticeEditHref(notice));
   }
 
   async function saveNoticeOrder(nextItems: NoticeWithCategory[]) {
@@ -336,7 +366,12 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
             {pageItems.map((notice) => (
               <tr
                 key={notice.id}
+                role="link"
+                tabIndex={0}
+                aria-label={`${notice.title} ${labels.edit}`}
                 draggable={!notice.isPinned}
+                onClick={(event) => handleRowClick(event, notice)}
+                onKeyDown={(event) => handleRowKeyDown(event, notice)}
                 onDragStart={(event) => {
                   if (notice.isPinned) {
                     event.preventDefault();
@@ -371,8 +406,8 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                     : dropHint?.id === notice.id
                       ? "bg-cyan-50"
                       : notice.status === "hidden"
-                        ? "bg-slate-100/80 hover:bg-slate-100"
-                        : "hover:bg-surface/70"
+                        ? "cursor-pointer bg-slate-100/80 hover:bg-slate-100"
+                        : "cursor-pointer hover:bg-surface/70"
                 } ${
                   dropHint?.id === notice.id && dropHint.position === "before"
                     ? "shadow-[inset_0_3px_0_#06b6d4]"
@@ -383,19 +418,23 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                     : ""
                 }`}
               >
-                <td className="relative px-3 py-4 text-center text-muted">
+                <td className="relative px-3 py-4 text-center text-muted" data-row-action>
                   {dropHint?.id === notice.id ? (
                     <DropIndicator position={dropHint.position} />
                   ) : null}
                   {notice.isPinned ? (
                     <span
                       className="inline-flex cursor-not-allowed items-center gap-1 rounded-md px-1 py-1 text-rose-400"
+                      data-row-action
                       title={labels.pinnedLocked}
                     >
                       <Pin size={16} />
                     </span>
                   ) : (
-                    <span className="inline-flex cursor-grab items-center gap-1 rounded-md px-1 py-1 active:cursor-grabbing">
+                    <span
+                      className="inline-flex cursor-grab items-center gap-1 rounded-md px-1 py-1 active:cursor-grabbing"
+                      data-row-action
+                    >
                       <GripVertical size={18} />
                       {draggingId === notice.id ? (
                         <span className="sr-only">{labels.dragging}</span>
@@ -409,7 +448,7 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                 <td className="px-4 py-4">
                   <CategoryBadge category={notice.category} />
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-4 py-4" data-row-action>
                   <StatusSelect
                     notice={notice}
                     open={statusMenuId === notice.id}
@@ -438,12 +477,10 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                     "-"
                   )}
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-4 py-4" data-row-action>
                   <div className="flex justify-center gap-2">
                     <Link
-                      href={`/admin/notices/${notice.id}/edit?game=${
-                        currentGameId === "all" ? notice.gameId : currentGameId
-                      }`}
+                      href={getNoticeEditHref(notice)}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-white text-muted hover:text-ink"
                       aria-label={labels.edit}
                       title={labels.edit}
@@ -596,6 +633,18 @@ function reorderNoticeItems(
   const insertIndex = position === "after" ? targetIndex + 1 : targetIndex;
   next.splice(insertIndex, 0, moved);
   return next.map((item, index) => ({ ...item, sortOrder: index + 1 }));
+}
+
+function shouldIgnoreRowNavigation(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return true;
+  }
+
+  return Boolean(
+    target.closest(
+      'a, button, input, select, textarea, [role="button"], [data-row-action]'
+    )
+  );
 }
 
 function FilterHeader({

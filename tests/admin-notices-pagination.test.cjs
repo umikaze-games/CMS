@@ -29,3 +29,17 @@ test("admin notices visibility action shows selected styling while hidden", () =
   assert.match(source, /notice\.status === "hidden" \? labels\.show : labels\.hide/);
   assert.match(source, /show: "\\u8868\\u793a\\u306b\\u623b\\u3059"/);
 });
+
+test("admin notice rows open edit screen while controls keep their own actions", () => {
+  const source = readFileSync("components/admin-notices-table.tsx", "utf8");
+
+  assert.match(source, /import \{ useRouter \} from "next\/navigation"/);
+  assert.match(source, /const router = useRouter\(\)/);
+  assert.match(source, /function getNoticeEditHref\(notice: NoticeWithCategory\)/);
+  assert.match(source, /function handleRowClick/);
+  assert.match(source, /shouldIgnoreRowNavigation\(event\.target\)/);
+  assert.match(source, /router\.push\(getNoticeEditHref\(notice\)\)/);
+  assert.match(source, /onClick=\{\(event\) => handleRowClick\(event, notice\)\}/);
+  assert.match(source, /data-row-action/);
+  assert.match(source, /cursor-pointer/);
+});
