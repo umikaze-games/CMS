@@ -147,10 +147,8 @@ export function AdminNoticeForm({
 
     const formData = new FormData(event.currentTarget);
     const effectivePublishValue = reservationEnabled ? publishValue : currentLocalDateTime();
-    const effectiveNewBadgeStartValue = reservationEnabled ? newBadgeStartValue : effectivePublishValue;
-    const effectiveNewBadgeEndValue = reservationEnabled
-      ? newBadgeEndValue
-      : addDaysLocalDateTime(effectivePublishValue, 7);
+    const effectiveNewBadgeStartValue = newBadgeStartValue;
+    const effectiveNewBadgeEndValue = newBadgeEndValue;
 
     formData.set("title", titleValue);
     formData.set("body", bodyValue);

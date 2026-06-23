@@ -19,3 +19,11 @@ test("NEW badge end keeps seven days from start until manually changed", () => {
   assert.match(source, /const currentDefaultEnd = addDaysLocalDateTime\(newBadgeStartValue, 7\)/);
   assert.match(source, /setNewBadgeEndValue\(addDaysLocalDateTime\(nextValue, 7\)\)/);
 });
+
+test("NEW badge period is preserved when editing without scheduled publish", () => {
+  const source = readFileSync("components/admin-notice-form.tsx", "utf8");
+
+  assert.match(source, /const effectiveNewBadgeStartValue = newBadgeStartValue;/);
+  assert.match(source, /const effectiveNewBadgeEndValue = newBadgeEndValue;/);
+  assert.doesNotMatch(source, /const effectiveNewBadgeEndValue = reservationEnabled[\s\S]*?addDaysLocalDateTime\(effectivePublishValue, 7\);/);
+});
