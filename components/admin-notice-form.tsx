@@ -33,6 +33,7 @@ const labels = {
   hidden: "\u975e\u516c\u958b",
   banner: "\u753b\u50cf\u30d0\u30ca\u30fc",
   upload: "\u30af\u30ea\u30c3\u30af\u3057\u3066\u753b\u50cf\u3092\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9",
+  bannerHelp: "10MB\u4ee5\u4e0b\uff08\u5e45\u30fb\u9ad8\u3055\u306e\u5236\u9650\u306f\u3042\u308a\u307e\u305b\u3093\uff09",
   uploaded: "\u753b\u50cf\u9078\u629e\u6e08\u307f",
   body: "\u672c\u6587",
   bodyPlaceholder:
@@ -423,6 +424,7 @@ export function AdminNoticeForm({
             <>
               <UploadCloud size={28} />
               <span>{labels.upload}</span>
+              <span className="text-xs font-bold text-slate-500">{labels.bannerHelp}</span>
             </>
           )}
         </label>
