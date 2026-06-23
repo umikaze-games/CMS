@@ -18,3 +18,10 @@ test("public category filters reset pagination", () => {
   assert.match(source, /function categoryHref\(categoryId: string\)/);
   assert.doesNotMatch(source, /href=\{`\/notices\?category=\$\{category\.id\}`\}/);
 });
+
+test("public TOP NEWS label only appears on pinned notices", () => {
+  const source = readFileSync("components/notice-card.tsx", "utf8");
+
+  assert.match(source, /featured && notice\.isPinned/);
+  assert.doesNotMatch(source, /\{featured \? \(/);
+});

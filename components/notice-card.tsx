@@ -51,7 +51,7 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
                 NEW
               </span>
             ) : null}
-            {featured ? (
+            {featured && notice.isPinned ? (
               <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700">
                 <Zap size={12} />
                 TOP NEWS
