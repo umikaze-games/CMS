@@ -27,6 +27,18 @@ test("admin game switcher includes an all option", () => {
   assert.match(source, /\.\.\.gameItems\.map\(\(game\) => \(\{ label: game\.name, value: game\.id \}\)\)/);
 });
 
+test("admin all-games notice list shows each notice game title", () => {
+  const pageSource = readFileSync("app/admin/notices/page.tsx", "utf8");
+  const tableSource = readFileSync("components/admin-notices-table.tsx", "utf8");
+
+  assert.match(pageSource, /<AdminNoticesTable notices=\{notices\} currentGameId=\{currentGameId\} games=\{games\} \/>/);
+  assert.match(tableSource, /games: GameTitle\[\]/);
+  assert.match(tableSource, /const showGameTitle = currentGameId === "all"/);
+  assert.match(tableSource, /new Map\(games\.map\(\(game\) => \[game\.id, game\.name\]\)\)/);
+  assert.match(tableSource, /showGameTitle \? \(/);
+  assert.match(tableSource, /gameNameById\.get\(notice\.gameId\) \?\? notice\.gameId/);
+});
+
 test("admin notices table refreshes when route-provided notices change", () => {
   const source = readFileSync("components/admin-notices-table.tsx", "utf8");
 

@@ -7,10 +7,11 @@ import { Check, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Edit, EyeO
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
 import { CategoryBadge } from "@/components/category-badge";
 import { formatDateWithTime, getNewBadgeRange, isNoticeNew } from "@/lib/date";
-import type { NoticeStatus, NoticeWithCategory } from "@/lib/types";
+import type { GameTitle, NoticeStatus, NoticeWithCategory } from "@/lib/types";
 
 const labels = {
   title: "\u30bf\u30a4\u30c8\u30eb",
+  gameTitle: "\u30b2\u30fc\u30e0",
   category: "\u30ab\u30c6\u30b4\u30ea\u30fc",
   status: "\u72b6\u614b",
   publishAt: "\u4e88\u7d04\u516c\u958b",
@@ -71,6 +72,7 @@ const pageSize = 15;
 type AdminNoticesTableProps = {
   notices: NoticeWithCategory[];
   currentGameId: string;
+  games: GameTitle[];
 };
 
 type DropHint = {
@@ -84,7 +86,7 @@ type FilterOption = {
   color?: string;
 };
 
-export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableProps) {
+export function AdminNoticesTable({ notices, currentGameId, games }: AdminNoticesTableProps) {
   const router = useRouter();
   const [items, setItems] = useSortableNotices(notices);
   const [now, setNow] = useState(Date.now());
@@ -102,6 +104,8 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
     notice: NoticeWithCategory;
     status?: NoticeStatus;
   }>(null);
+  const showGameTitle = currentGameId === "all";
+  const gameNameById = new Map(games.map((game) => [game.id, game.name]));
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60 * 1000);
@@ -368,7 +372,7 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                 key={notice.id}
                 role="link"
                 tabIndex={0}
-                aria-label={`${notice.title} ${labels.edit}`}
+                aria-label={`${showGameTitle ? `${gameNameById.get(notice.gameId) ?? notice.gameId} ` : ""}${notice.title} ${labels.edit}`}
                 draggable={!notice.isPinned}
                 onClick={(event) => handleRowClick(event, notice)}
                 onKeyDown={(event) => handleRowKeyDown(event, notice)}
@@ -443,7 +447,17 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                   )}
                 </td>
                 <td className={`px-4 py-4 text-center font-bold ${notice.status === "hidden" ? "text-slate-500" : "text-ink"}`}>
-                  {notice.title}
+                  <div className="flex min-w-0 flex-col items-center gap-1.5">
+                    <span className="max-w-full break-words">{notice.title}</span>
+                    {showGameTitle ? (
+                      <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-600 ring-1 ring-slate-200">
+                        <span className="shrink-0">{labels.gameTitle}</span>
+                        <span className="max-w-[9rem] truncate text-slate-800">
+                          {gameNameById.get(notice.gameId) ?? notice.gameId}
+                        </span>
+                      </span>
+                    ) : null}
+                  </div>
                 </td>
                 <td className="px-4 py-4">
                   <CategoryBadge category={notice.category} />

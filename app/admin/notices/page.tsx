@@ -48,7 +48,7 @@ export default async function AdminNoticesPage({ searchParams }: AdminNoticesPag
         </div>
       </div>
 
-      <AdminNoticesTable notices={notices} currentGameId={currentGameId} />
+      <AdminNoticesTable notices={notices} currentGameId={currentGameId} games={games} />
     </AdminShell>
   );
 }
