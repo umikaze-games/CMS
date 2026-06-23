@@ -2,8 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ChangeEvent, FormEvent } from "react";
-import { useEffect, useState } from "react";
-import { FileText, Save, UploadCloud } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { FileText, Save, UploadCloud, X } from "lucide-react";
 import {
   AdminDateTimePicker,
   defaultLocalDateTime
@@ -34,6 +34,7 @@ const labels = {
   banner: "\u753b\u50cf\u30d0\u30ca\u30fc",
   upload: "\u30af\u30ea\u30c3\u30af\u3057\u3066\u753b\u50cf\u3092\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9",
   bannerHelp: "10MB\u4ee5\u4e0b\uff08\u5e45\u30fb\u9ad8\u3055\u306e\u5236\u9650\u306f\u3042\u308a\u307e\u305b\u3093\uff09",
+  cancelBanner: "\u9078\u629e\u3092\u30ad\u30e3\u30f3\u30bb\u30eb",
   uploaded: "\u753b\u50cf\u9078\u629e\u6e08\u307f",
   body: "\u672c\u6587",
   bodyPlaceholder:
@@ -90,6 +91,7 @@ export function AdminNoticeForm({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [titleValue, setTitleValue] = useState(notice?.title ?? "");
@@ -287,6 +289,15 @@ export function AdminNoticeForm({
     setBannerPreview(await fileToDataUrl(file));
   }
 
+  function clearBannerSelection() {
+    setMessage(null);
+    setBannerFileName(null);
+    setBannerPreview(null);
+    if (bannerInputRef.current) {
+      bannerInputRef.current.value = "";
+    }
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -413,12 +424,25 @@ export function AdminNoticeForm({
                 className="absolute inset-0 h-full w-full object-cover opacity-85"
               />
               <div className="absolute inset-0 bg-slate-950/35" />
-              <div className="relative z-10 inline-flex flex-col items-center gap-1 rounded-xl bg-white/92 px-4 py-2 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.16)] backdrop-blur">
-                <span className="text-sm font-black text-cyan-700">{labels.uploaded}</span>
-                <span className="max-w-[720px] truncate text-xs font-bold text-slate-600">
+              <div className="relative z-10 inline-flex max-w-[calc(100%-4rem)] flex-col items-center gap-1 rounded-xl bg-slate-950/85 px-4 py-2 text-white shadow-[0_12px_30px_rgba(15,23,42,0.22)] backdrop-blur">
+                <span className="text-sm font-black text-white">{labels.uploaded}</span>
+                <span className="max-w-[720px] truncate text-xs font-bold text-slate-200">
                   {bannerFileName ?? notice?.bannerImage ?? ""}
                 </span>
               </div>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  clearBannerSelection();
+                }}
+                className="absolute right-3 top-3 z-20 inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/92 text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.18)] hover:bg-white hover:text-rose-600"
+                aria-label={labels.cancelBanner}
+                title={labels.cancelBanner}
+              >
+                <X size={16} />
+              </button>
             </>
           ) : (
             <>
@@ -429,6 +453,7 @@ export function AdminNoticeForm({
           )}
         </label>
         <input
+          ref={bannerInputRef}
           id="banner"
           name="banner_image"
           type="file"
