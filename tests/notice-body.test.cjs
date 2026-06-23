@@ -4,6 +4,8 @@ const { resolve } = require("node:path");
 const { test } = require("node:test");
 const ts = require("typescript");
 
+const globalCss = readFileSync("app/globals.css", "utf8");
+
 function loadNoticeBody() {
   const source = readFileSync("components/notice-body.tsx", "utf8");
   const compiled = ts.transpileModule(source, {
@@ -37,4 +39,9 @@ test("legacy markdown image attributes are escaped before rich HTML rendering", 
     element.props.dangerouslySetInnerHTML.__html,
     '<p><img src="/uploads/notices/a&quot; onerror=&quot;alert.png" alt="bad &quot;alt" class="notice-inline-image"></p>'
   );
+});
+
+test("front notice rich body preserves bold text styling", () => {
+  assert.match(globalCss, /\.notice-rich-body\s+(?:b|strong)/);
+  assert.match(globalCss, /font-weight:\s*(?:700|800|900|bold)/);
 });

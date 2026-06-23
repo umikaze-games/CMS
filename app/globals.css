@@ -56,6 +56,13 @@ textarea {
   margin: 0 0 1rem;
 }
 
+.notice-editor b,
+.notice-editor strong,
+.notice-rich-body b,
+.notice-rich-body strong {
+  font-weight: 800;
+}
+
 .notice-editor img,
 .notice-rich-body img,
 .notice-inline-image {
