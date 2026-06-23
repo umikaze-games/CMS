@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveNoticeBannerImage, isDefaultNoticeBannerUrl } from "@/lib/default-notice-banners";
 import { saveLocalBannerFile } from "@/lib/local-banner-store";
 import {
   deleteLocalNotice,
@@ -29,7 +30,11 @@ export async function PUT(request: Request, context: RouteContext) {
       const currentNotice = currentNotices.find((item) => item.id === id);
       const bannerImage = values.banner
         ? await saveLocalBannerFile(values.banner)
-        : currentNotice?.bannerImage ?? null;
+        : values.useDefaultBanner ||
+            !currentNotice?.bannerImage ||
+            isDefaultNoticeBannerUrl(currentNotice.bannerImage)
+          ? resolveNoticeBannerImage(values.categoryId, null)
+          : currentNotice.bannerImage;
       await updateLocalNotice(id, {
         gameId: values.gameId,
         categoryId: values.categoryId,
@@ -74,6 +79,8 @@ export async function PUT(request: Request, context: RouteContext) {
 
       const { data } = supabaseAdmin.storage.from("notice-banners").getPublicUrl(filePath);
       bannerImage = data.publicUrl;
+    } else if (values.useDefaultBanner) {
+      bannerImage = resolveNoticeBannerImage(values.categoryId, null);
     }
 
     if (values.isPinned) {

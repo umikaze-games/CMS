@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, Pin, Zap } from "lucide-react";
 import { CategoryBadge } from "@/components/category-badge";
 import { formatDateWithTime } from "@/lib/date";
+import { getNoticeBannerImage, isDefaultNoticeBannerUrl } from "@/lib/default-notice-banners";
 import { isLocalNoticeUploadUrl } from "@/lib/local-upload-path";
 import { getNoticeExcerpt } from "@/lib/notice-text";
 import type { NoticeWithCategory } from "@/lib/types";
@@ -18,6 +19,8 @@ type NoticeCardProps = {
 };
 
 export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCardProps) {
+  const bannerImage = getNoticeBannerImage(notice);
+
   return (
     <Link
       href={`/notices/${notice.id}`}
@@ -25,20 +28,14 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
       <div className="relative h-32 overflow-hidden bg-slate-100 md:h-full md:min-h-32">
-        {notice.bannerImage ? (
-          <Image
-            src={notice.bannerImage}
-            alt=""
-            fill
-            sizes="(min-width: 768px) 220px, 100vw"
-            unoptimized={isLocalNoticeUploadUrl(notice.bannerImage)}
-            className="object-cover saturate-125 transition duration-700 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#ecfeff,#eef2ff_48%,#fdf2f8)] text-xs font-black text-cyan-700">
-            NO IMAGE
-          </div>
-        )}
+        <Image
+          src={bannerImage}
+          alt=""
+          fill
+          sizes="(min-width: 768px) 220px, 100vw"
+          unoptimized={isLocalNoticeUploadUrl(bannerImage) || isDefaultNoticeBannerUrl(bannerImage)}
+          className="object-cover saturate-125 transition duration-700 group-hover:scale-105"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-transparent" />
       </div>
 

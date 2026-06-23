@@ -15,6 +15,10 @@ import { getSaveResponseMessage } from "@/lib/admin-save-response";
 import { validateAdminBannerFile } from "@/lib/admin-upload";
 import { loadGameTitles, subscribeGameTitlesChange } from "@/lib/admin-game-titles";
 import { addDaysLocalDateTime, formatDateTimeLocal } from "@/lib/date";
+import {
+  getDefaultNoticeBannerUrl,
+  isDefaultNoticeBannerUrl
+} from "@/lib/default-notice-banners";
 import { getNoticeTemplate, type NoticeTemplateMap } from "@/lib/notice-templates";
 import type { GameTitle, NoticeCategory, NoticeWithCategory } from "@/lib/types";
 import type { NoticeStatus } from "@/lib/types";
@@ -36,6 +40,7 @@ const labels = {
   bannerHelp: "10MB\u4ee5\u4e0b\uff08\u5e45\u30fb\u9ad8\u3055\u306e\u5236\u9650\u306f\u3042\u308a\u307e\u305b\u3093\uff09",
   cancelBanner: "\u9078\u629e\u3092\u30ad\u30e3\u30f3\u30bb\u30eb",
   uploaded: "\u753b\u50cf\u9078\u629e\u6e08\u307f",
+  defaultBanner: "\u30ab\u30c6\u30b4\u30ea\u30fc\u65e2\u5b9a\u753b\u50cf",
   body: "\u672c\u6587",
   bodyPlaceholder:
     "\u672c\u6587\u3092\u5165\u529b\u3002\u7d75\u6587\u5b57\u3068\u6539\u884c\u306f\u305d\u306e\u307e\u307e\u30d5\u30ed\u30f3\u30c8\u306b\u53cd\u6620\u3055\u308c\u307e\u3059\u3002",
@@ -92,15 +97,22 @@ export function AdminNoticeForm({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const initialCategoryId = notice?.categoryId ?? categories[0]?.id ?? "";
+  const initialUsesDefaultBanner =
+    !notice?.bannerImage || isDefaultNoticeBannerUrl(notice.bannerImage);
+  const initialBannerPreview = initialUsesDefaultBanner
+    ? getDefaultNoticeBannerUrl(initialCategoryId)
+    : notice?.bannerImage ?? getDefaultNoticeBannerUrl(initialCategoryId);
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [titleValue, setTitleValue] = useState(notice?.title ?? "");
   const [bodyValue, setBodyValue] = useState(notice?.body ?? "");
-  const [bannerPreview, setBannerPreview] = useState<string | null>(notice?.bannerImage ?? null);
+  const [bannerPreview, setBannerPreview] = useState(initialBannerPreview);
+  const [usesDefaultBanner, setUsesDefaultBanner] = useState(initialUsesDefaultBanner);
   const [bannerFileName, setBannerFileName] = useState<string | null>(null);
   const [gameItems, setGameItems] = useState(games);
   const [gameValue, setGameValue] = useState(notice?.gameId ?? currentGameId);
-  const [categoryValue, setCategoryValue] = useState(notice?.categoryId ?? categories[0]?.id ?? "");
+  const [categoryValue, setCategoryValue] = useState(initialCategoryId);
   const [statusValue, setStatusValue] = useState(notice?.status ?? "draft");
   const [reservationEnabled, setReservationEnabled] = useState(() =>
     notice ? new Date(notice.publishAt).getTime() > Date.now() : false
@@ -158,6 +170,7 @@ export function AdminNoticeForm({
     formData.set("publish_at", effectivePublishValue);
     formData.set("new_badge_start_at", effectiveNewBadgeStartValue);
     formData.set("new_badge_end_at", effectiveNewBadgeEndValue);
+    formData.set("use_default_banner", usesDefaultBanner ? "true" : "false");
 
     const selectedCategory = categories.find((category) => category.id === categoryValue);
     const uploadedBanner = formData.get("banner_image");
@@ -174,7 +187,9 @@ export function AdminNoticeForm({
     const bannerUrl =
       uploadedBanner instanceof File && uploadedBanner.size > 0
         ? await fileToDataUrl(uploadedBanner)
-        : notice?.bannerImage ?? null;
+        : usesDefaultBanner
+          ? getDefaultNoticeBannerUrl(categoryValue)
+          : bannerPreview;
 
     setPendingFormData(formData);
     setReviewData({
@@ -250,6 +265,13 @@ export function AdminNoticeForm({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
+  function handleCategoryChange(nextCategoryId: string) {
+    setCategoryValue(nextCategoryId);
+    if (usesDefaultBanner) {
+      setBannerPreview(getDefaultNoticeBannerUrl(nextCategoryId));
+    }
+  }
+
   function loadSelectedTemplate() {
     const template = getNoticeTemplate(templates, categoryValue);
     if (!template) {
@@ -271,7 +293,11 @@ export function AdminNoticeForm({
     if (!file) {
       setMessage(null);
       setBannerFileName(null);
-      setBannerPreview(notice?.bannerImage ?? null);
+      setBannerPreview(
+        usesDefaultBanner
+          ? getDefaultNoticeBannerUrl(categoryValue)
+          : notice?.bannerImage ?? getDefaultNoticeBannerUrl(categoryValue)
+      );
       return;
     }
 
@@ -279,20 +305,26 @@ export function AdminNoticeForm({
     if (bannerError) {
       setMessage(bannerError);
       setBannerFileName(null);
-      setBannerPreview(notice?.bannerImage ?? null);
+      setBannerPreview(
+        usesDefaultBanner
+          ? getDefaultNoticeBannerUrl(categoryValue)
+          : notice?.bannerImage ?? getDefaultNoticeBannerUrl(categoryValue)
+      );
       event.currentTarget.value = "";
       return;
     }
 
     setMessage(null);
     setBannerFileName(file.name);
+    setUsesDefaultBanner(false);
     setBannerPreview(await fileToDataUrl(file));
   }
 
   function clearBannerSelection() {
     setMessage(null);
     setBannerFileName(null);
-    setBannerPreview(null);
+    setUsesDefaultBanner(true);
+    setBannerPreview(getDefaultNoticeBannerUrl(categoryValue));
     if (bannerInputRef.current) {
       bannerInputRef.current.value = "";
     }
@@ -320,7 +352,7 @@ export function AdminNoticeForm({
           label={labels.category}
           name="category_id"
           value={categoryValue}
-          onChange={setCategoryValue}
+          onChange={handleCategoryChange}
           options={categories.map((category) => ({ label: category.name, value: category.id }))}
         />
       </div>
@@ -425,9 +457,11 @@ export function AdminNoticeForm({
               />
               <div className="absolute inset-0 bg-slate-950/35" />
               <div className="relative z-10 inline-flex max-w-[calc(100%-4rem)] flex-col items-center gap-1 rounded-xl bg-slate-950/85 px-4 py-2 text-white shadow-[0_12px_30px_rgba(15,23,42,0.22)] backdrop-blur">
-                <span className="text-sm font-black text-white">{labels.uploaded}</span>
+                <span className="text-sm font-black text-white">
+                  {usesDefaultBanner ? labels.defaultBanner : labels.uploaded}
+                </span>
                 <span className="max-w-[720px] truncate text-xs font-bold text-slate-200">
-                  {bannerFileName ?? notice?.bannerImage ?? ""}
+                  {bannerFileName ?? bannerPreview}
                 </span>
               </div>
               <button
@@ -460,6 +494,11 @@ export function AdminNoticeForm({
           accept="image/*"
           className="hidden"
           onChange={(event) => void handleBannerChange(event)}
+        />
+        <input
+          type="hidden"
+          name="use_default_banner"
+          value={usesDefaultBanner ? "true" : "false"}
         />
       </div>
 

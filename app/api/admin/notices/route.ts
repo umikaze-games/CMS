@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveNoticeBannerImage } from "@/lib/default-notice-banners";
 import { saveLocalBannerFile } from "@/lib/local-banner-store";
 import { createLocalNotice } from "@/lib/local-notice-store";
 import { readNoticeFormData, slugifyFileName } from "@/lib/notice-form";
@@ -11,7 +12,9 @@ export async function POST(request: Request) {
     try {
       const formData = await request.formData();
       const values = readNoticeFormData(formData);
-      const bannerImage = values.banner ? await saveLocalBannerFile(values.banner) : null;
+      const bannerImage = values.banner
+        ? await saveLocalBannerFile(values.banner)
+        : resolveNoticeBannerImage(values.categoryId, null);
       const notice = await createLocalNotice({
         gameId: values.gameId,
         categoryId: values.categoryId,
@@ -37,7 +40,7 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const values = readNoticeFormData(formData);
-    let bannerImage: string | null = null;
+    let bannerImage: string | null = resolveNoticeBannerImage(values.categoryId, null);
 
     if (values.banner) {
       const fileName = slugifyFileName(values.banner.name);

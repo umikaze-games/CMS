@@ -13,6 +13,7 @@ export function readNoticeFormData(formData: FormData) {
   const newBadgeEndAt = String(formData.get("new_badge_end_at") ?? "").trim();
   const sortOrder = Number(formData.get("sort_order") ?? 50);
   const isPinned = formData.get("is_pinned") === "on" || formData.get("is_pinned") === "true";
+  const useDefaultBanner = formData.get("use_default_banner") === "true";
   const banner = formData.get("banner_image");
   const bannerFile = banner instanceof File && banner.size > 0 ? banner : null;
 
@@ -52,6 +53,7 @@ export function readNoticeFormData(formData: FormData) {
     isPinned,
     newBadgeStartAt: resolvedNewBadgeStartAt,
     newBadgeEndAt: resolvedNewBadgeEndAt,
+    useDefaultBanner,
     banner: bannerFile
   };
 }

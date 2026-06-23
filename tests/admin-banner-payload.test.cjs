@@ -34,14 +34,15 @@ test("banner upload area shows the current image size limit", () => {
   assert.match(source, /\{labels\.bannerHelp\}/);
 });
 
-test("banner selection can be cancelled back to the empty upload prompt", () => {
+test("banner selection can be cancelled back to the category default banner", () => {
   const source = readFileSync("components/admin-notice-form.tsx", "utf8");
 
   assert.match(source, /bannerInputRef = useRef<HTMLInputElement>\(null\)/);
   assert.match(source, /function clearBannerSelection\(\)/);
   assert.match(source, /bannerInputRef\.current\.value = ""/);
   assert.match(source, /setBannerFileName\(null\)/);
-  assert.match(source, /setBannerPreview\(null\)/);
+  assert.match(source, /setUsesDefaultBanner\(true\)/);
+  assert.match(source, /setBannerPreview\(getDefaultNoticeBannerUrl\(categoryValue\)\)/);
   assert.match(source, /onClick=\{\(event\) => \{\s*event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*clearBannerSelection\(\);\s*\}\}/);
 });
 
