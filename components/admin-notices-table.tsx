@@ -326,8 +326,11 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
           <thead className="sticky top-0 z-20 bg-slate-900 text-xs uppercase text-white shadow-sm">
             <tr>
               <th className="w-[4%] rounded-tl-2xl px-2 py-3" />
-              <th className="w-[16%] px-3 py-3">{labels.title}</th>
-              <th className="w-[14%] px-3 py-3">
+              <th className={`${showGameTitle ? "w-[13%]" : "w-[16%]"} px-3 py-3`}>{labels.title}</th>
+              {showGameTitle ? (
+                <th className="w-[12%] px-3 py-3">{labels.gameTitle}</th>
+              ) : null}
+              <th className={`${showGameTitle ? "w-[12%]" : "w-[14%]"} px-3 py-3`}>
                 <FilterHeader
                   label={labels.category}
                   active={categoryFilter !== "all"}
@@ -343,7 +346,7 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
                   }}
                 />
               </th>
-              <th className="w-[13%] px-3 py-3">
+              <th className={`${showGameTitle ? "w-[11%]" : "w-[13%]"} px-3 py-3`}>
                 <FilterHeader
                   label={labels.status}
                   active={statusFilter !== "all"}
@@ -359,11 +362,11 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
                   }}
                 />
               </th>
-              <th className="w-[14%] px-3 py-3">{labels.publishAt}</th>
-              <th className="w-[14%] px-3 py-3">{labels.updatedAt}</th>
-              <th className="w-[12%] px-3 py-3">{labels.newBadge}</th>
-              <th className="w-[8%] px-3 py-3">{labels.pinned}</th>
-              <th className="w-[13%] rounded-tr-2xl px-3 py-3 text-center">{labels.actions}</th>
+              <th className={`${showGameTitle ? "w-[12%]" : "w-[14%]"} px-3 py-3`}>{labels.publishAt}</th>
+              <th className={`${showGameTitle ? "w-[12%]" : "w-[14%]"} px-3 py-3`}>{labels.updatedAt}</th>
+              <th className={`${showGameTitle ? "w-[10%]" : "w-[12%]"} px-3 py-3`}>{labels.newBadge}</th>
+              <th className={`${showGameTitle ? "w-[6%]" : "w-[8%]"} px-3 py-3`}>{labels.pinned}</th>
+              <th className={`${showGameTitle ? "w-[10%]" : "w-[13%]"} rounded-tr-2xl px-3 py-3 text-center`}>{labels.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -447,18 +450,15 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
                   )}
                 </td>
                 <td className={`px-4 py-4 text-center font-bold ${notice.status === "hidden" ? "text-slate-500" : "text-ink"}`}>
-                  <div className="flex min-w-0 flex-col items-center gap-1.5">
-                    <span className="max-w-full break-words">{notice.title}</span>
-                    {showGameTitle ? (
-                      <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-600 ring-1 ring-slate-200">
-                        <span className="shrink-0">{labels.gameTitle}</span>
-                        <span className="max-w-[9rem] truncate text-slate-800">
-                          {gameNameById.get(notice.gameId) ?? notice.gameId}
-                        </span>
-                      </span>
-                    ) : null}
-                  </div>
+                  <span className="max-w-full break-words">{notice.title}</span>
                 </td>
+                {showGameTitle ? (
+                  <td className="px-4 py-4 font-bold text-slate-700">
+                    <span className="break-words">
+                      {gameNameById.get(notice.gameId) ?? notice.gameId}
+                    </span>
+                  </td>
+                ) : null}
                 <td className="px-4 py-4">
                   <CategoryBadge category={notice.category} />
                 </td>
