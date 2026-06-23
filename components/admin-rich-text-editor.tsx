@@ -1091,7 +1091,7 @@ export function AdminRichTextEditor({
     selection.addRange(range);
   }
 
-  function runCommand(command: string, commandValue?: string, collapseAfter = true) {
+  function runCommand(command: string, commandValue?: string, collapseAfter = false) {
     restoreSelection();
     document.execCommand(command, false, commandValue);
     if (collapseAfter) {
@@ -1103,7 +1103,7 @@ export function AdminRichTextEditor({
   }
 
   function insertEmoji(value: string) {
-    runCommand("insertText", value);
+    runCommand("insertText", value, true);
     setShowEmojiMenu(false);
   }
 
@@ -1171,7 +1171,8 @@ export function AdminRichTextEditor({
   function insertInlineImage(url: string) {
     runCommand(
       "insertHTML",
-      `<p><img src="${escapeAttribute(url)}" alt="inline-image" class="notice-inline-image"></p>`
+      `<p><img src="${escapeAttribute(url)}" alt="inline-image" class="notice-inline-image"></p>`,
+      true
     );
   }
 

@@ -11,10 +11,16 @@ test("rich text toolbar gives bold a visible active state", () => {
   assert.match(source, /bg-cyan-100 text-cyan-700/);
 });
 
-test("rich text toolbar collapses text selection after applying a command", () => {
+test("rich text toolbar keeps selected text active after applying text effects", () => {
+  assert.match(source, /function runCommand\(command: string, commandValue\?: string, collapseAfter = false\)/);
   assert.match(source, /function collapseSelectionToEnd\(\)/);
   assert.match(source, /range\.collapse\(false\)/);
   assert.match(source, /if \(collapseAfter\) \{\s*collapseSelectionToEnd\(\);/);
+  assert.match(source, /onClick=\{\(\) => runCommand\("bold"\)\}/);
+  assert.match(source, /onClick=\{\(\) => runCommand\("strikeThrough"\)\}/);
+  assert.match(source, /onClick=\{\(\) => runCommand\("justifyLeft"\)\}/);
+  assert.match(source, /onClick=\{\(\) => runCommand\("justifyCenter"\)\}/);
+  assert.match(source, /onClick=\{\(\) => runCommand\("justifyRight"\)\}/);
 });
 
 test("rich text toolbar renders one bold button", () => {
@@ -66,7 +72,7 @@ test("rich text toolbar ignores stray pointer clicks that did not start on a too
 
 test("rich text emoji picker closes after inserting a choice", () => {
   const insertEmojiBody = source.match(/function insertEmoji\(value: string\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
-  assert.match(insertEmojiBody, /runCommand\("insertText", value\)/);
+  assert.match(insertEmojiBody, /runCommand\("insertText", value, true\)/);
   assert.match(insertEmojiBody, /setShowEmojiMenu\(false\)/);
 });
 
