@@ -11,6 +11,13 @@ test("rich text toolbar gives bold a visible active state", () => {
   assert.match(source, /bg-cyan-100 text-cyan-700/);
 });
 
+test("rich text editor defaults to medium regular text", () => {
+  assert.match(source, /bold: false/);
+  assert.match(source, /defaultValue="3"/);
+  assert.match(source, /className="notice-editor[\s\S]*text-base font-normal/);
+  assert.doesNotMatch(source, /className="notice-editor[\s\S]*text-sm font-bold/);
+});
+
 test("rich text toolbar keeps selected text active after applying text effects", () => {
   assert.match(source, /function runCommand\(command: string, commandValue\?: string, collapseAfter = false\)/);
   assert.match(source, /function collapseSelectionToEnd\(\)/);

@@ -1526,7 +1526,7 @@ export function AdminRichTextEditor({
         }}
         onFocus={handleEditorFocus}
         onPaste={handlePaste}
-        className="notice-editor min-h-[360px] resize-y overflow-auto rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold leading-7 outline-none transition empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+        className="notice-editor min-h-[360px] resize-y overflow-auto rounded-xl border border-line bg-white px-4 py-3 text-base font-normal leading-7 outline-none transition empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
         data-placeholder={placeholder}
       />
       <span className="text-xs font-semibold text-muted">{help}</span>
