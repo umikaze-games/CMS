@@ -61,6 +61,20 @@ export async function updateLocalNoticeStatus(id: string, status: NoticeStatus) 
   );
 }
 
+export async function reorderLocalNotices(orderedIds: string[]) {
+  const current = await readStore();
+  const now = new Date().toISOString();
+  const orderMap = new Map(orderedIds.map((id, index) => [id, index + 1]));
+
+  await writeStore(
+    current.map((item) =>
+      orderMap.has(item.id)
+        ? { ...item, sortOrder: orderMap.get(item.id)!, updatedAt: now }
+        : item
+    )
+  );
+}
+
 export async function deleteLocalNotice(id: string) {
   const current = await readStore();
   await writeStore(current.filter((item) => item.id !== id));

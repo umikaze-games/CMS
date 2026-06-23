@@ -22,7 +22,7 @@ function withCategory(notice: Notice, categories = getCategories()): NoticeWithC
   };
 }
 
-function byPublicOrder(a: NoticeWithCategory, b: NoticeWithCategory) {
+function byNoticeOrder(a: NoticeWithCategory, b: NoticeWithCategory) {
   if (a.isPinned !== b.isPinned) {
     return a.isPinned ? -1 : 1;
   }
@@ -156,7 +156,7 @@ export async function getPublicNotices(categoryId?: string, gameId?: string) {
     .filter((notice) => parseNoticeDateTime(notice.publishAt).getTime() <= now)
     .filter((notice) => (categoryId ? notice.categoryId === categoryId : true))
     .map((notice) => withCategory(notice, categories))
-    .sort(byPublicOrder);
+    .sort(byNoticeOrder);
 }
 
 export async function getNoticeById(id: string) {
@@ -189,7 +189,9 @@ export async function getAdminNotices(gameId?: string) {
       .select(
         "id,game_id,category_id,title,body,banner_image,status,is_pinned,publish_at,new_badge_start_at,new_badge_end_at,created_at,updated_at,sort_order,category:notice_categories(id,name,color,sort_order)"
       )
-      .order("updated_at", { ascending: false });
+      .order("is_pinned", { ascending: false })
+      .order("sort_order", { ascending: true })
+      .order("publish_at", { ascending: false });
 
     if (gameId) {
       query = query.eq("game_id", gameId);
@@ -210,5 +212,5 @@ export async function getAdminNotices(gameId?: string) {
   return localNotices
     .filter((notice) => (gameId ? notice.gameId === gameId : true))
     .map((notice) => withCategory(notice, categories))
-    .sort(byPublicOrder);
+    .sort(byNoticeOrder);
 }

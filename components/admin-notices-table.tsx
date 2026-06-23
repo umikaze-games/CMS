@@ -38,6 +38,9 @@ const labels = {
   statusTitle: "\u516c\u958b\u72b6\u614b\u3092\u5909\u66f4\u3057\u307e\u3059\u304b\uff1f",
   statusConfirm: "\u5909\u66f4\u3059\u308b",
   statusError: "\u516c\u958b\u72b6\u614b\u306e\u5909\u66f4\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
+  orderSaved: "\u8868\u793a\u9806\u3092\u4fdd\u5b58\u3057\u307e\u3057\u305f\u3002",
+  orderError: "\u8868\u793a\u9806\u306e\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
+  pinnedLocked: "TOP\u56fa\u5b9a\u4e2d",
   insertHere: "\u3053\u3053\u306b\u633f\u5165",
   dragging: "\u79fb\u52d5\u4e2d",
   prevPage: "\u524d\u306e\u30da\u30fc\u30b8",
@@ -145,33 +148,59 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
     setCurrentPage(Number.isFinite(requestedPage) ? requestedPage : safePage);
   }
 
-  function moveItem(fromId: string, toId: string, position: "before" | "after") {
+  async function saveNoticeOrder(nextItems: NoticeWithCategory[]) {
+    const response = await fetch("/api/admin/notices/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderedIds: nextItems.map((item) => item.id) })
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(payload?.message ?? labels.orderError);
+    }
+  }
+
+  async function moveItem(fromId: string, toId: string, position: "before" | "after") {
     if (!fromId || !toId || fromId === toId) {
       return;
     }
 
-    setItems((current) => {
-      const fromIndex = current.findIndex((item) => item.id === fromId);
-      const toIndex = current.findIndex((item) => item.id === toId);
-      if (fromIndex < 0 || toIndex < 0) {
-        return current;
-      }
-      const next = [...current];
-      const [moved] = next.splice(fromIndex, 1);
-      const targetIndex = next.findIndex((item) => item.id === toId);
-      const insertIndex = position === "after" ? targetIndex + 1 : targetIndex;
-      next.splice(insertIndex, 0, moved);
-      return next.map((item, index) => ({ ...item, sortOrder: index + 1 }));
-    });
+    const fromNotice = items.find((item) => item.id === fromId);
+    const targetNotice = items.find((item) => item.id === toId);
+    if (fromNotice?.isPinned || targetNotice?.isPinned) {
+      return;
+    }
+
+    const nextItems = reorderNoticeItems(items, fromId, toId, position);
+    if (!nextItems) {
+      return;
+    }
+
+    setFeedbackMessage(null);
+    setItems(nextItems);
+
+    try {
+      await saveNoticeOrder(nextItems);
+      setFeedbackMessage(labels.orderSaved);
+    } catch (error) {
+      setItems(items);
+      setFeedbackMessage(error instanceof Error ? error.message : labels.orderError);
+    }
   }
 
   function updateDropHint(event: React.DragEvent<HTMLTableRowElement>, id: string) {
+    const targetNotice = items.find((item) => item.id === id);
+    const sourceNotice = draggingId ? items.find((item) => item.id === draggingId) : null;
+    if (!draggingId || draggingId === id || targetNotice?.isPinned || sourceNotice?.isPinned) {
+      setDropHint(null);
+      return;
+    }
+
     event.preventDefault();
     const rect = event.currentTarget.getBoundingClientRect();
     const position = event.clientY > rect.top + rect.height / 2 ? "after" : "before";
-    if (draggingId && draggingId !== id) {
-      setDropHint({ id, position });
-    }
+    setDropHint({ id, position });
   }
 
   function clearDragState() {
@@ -307,8 +336,13 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
             {pageItems.map((notice) => (
               <tr
                 key={notice.id}
-                draggable
+                draggable={!notice.isPinned}
                 onDragStart={(event) => {
+                  if (notice.isPinned) {
+                    event.preventDefault();
+                    return;
+                  }
+
                   event.dataTransfer.effectAllowed = "move";
                   event.dataTransfer.setData("text/plain", notice.id);
                   setDraggingId(notice.id);
@@ -320,10 +354,15 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                     setDropHint((current) => (current?.id === notice.id ? null : current));
                   }
                 }}
-                onDrop={(event) => {
+                onDrop={async (event) => {
                   event.preventDefault();
+                  if (notice.isPinned) {
+                    clearDragState();
+                    return;
+                  }
+
                   const fromId = event.dataTransfer.getData("text/plain");
-                  moveItem(fromId, notice.id, dropHint?.position ?? "before");
+                  await moveItem(fromId, notice.id, dropHint?.position ?? "before");
                   clearDragState();
                 }}
                 className={`relative border-t border-line transition ${
@@ -348,12 +387,21 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                   {dropHint?.id === notice.id ? (
                     <DropIndicator position={dropHint.position} />
                   ) : null}
-                  <span className="inline-flex cursor-grab items-center gap-1 rounded-md px-1 py-1 active:cursor-grabbing">
-                    <GripVertical size={18} />
-                    {draggingId === notice.id ? (
-                      <span className="sr-only">{labels.dragging}</span>
-                    ) : null}
-                  </span>
+                  {notice.isPinned ? (
+                    <span
+                      className="inline-flex cursor-not-allowed items-center gap-1 rounded-md px-1 py-1 text-rose-400"
+                      title={labels.pinnedLocked}
+                    >
+                      <Pin size={16} />
+                    </span>
+                  ) : (
+                    <span className="inline-flex cursor-grab items-center gap-1 rounded-md px-1 py-1 active:cursor-grabbing">
+                      <GripVertical size={18} />
+                      {draggingId === notice.id ? (
+                        <span className="sr-only">{labels.dragging}</span>
+                      ) : null}
+                    </span>
+                  )}
                 </td>
                 <td className={`px-4 py-4 text-center font-bold ${notice.status === "hidden" ? "text-slate-500" : "text-ink"}`}>
                   {notice.title}
@@ -524,6 +572,30 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
       />
     </div>
   );
+}
+
+function reorderNoticeItems(
+  items: NoticeWithCategory[],
+  fromId: string,
+  toId: string,
+  position: "before" | "after"
+) {
+  const fromIndex = items.findIndex((item) => item.id === fromId);
+  const toIndex = items.findIndex((item) => item.id === toId);
+  if (fromIndex < 0 || toIndex < 0) {
+    return null;
+  }
+
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  const targetIndex = next.findIndex((item) => item.id === toId);
+  if (targetIndex < 0) {
+    return null;
+  }
+
+  const insertIndex = position === "after" ? targetIndex + 1 : targetIndex;
+  next.splice(insertIndex, 0, moved);
+  return next.map((item, index) => ({ ...item, sortOrder: index + 1 }));
 }
 
 function FilterHeader({
