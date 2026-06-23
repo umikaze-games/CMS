@@ -93,7 +93,8 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropHint, setDropHint] = useState<DropHint | null>(null);
   const [statusMenuId, setStatusMenuId] = useState<string | null>(null);
-  const [filterMenu, setFilterMenu] = useState<"category" | "status" | null>(null);
+  const [filterMenu, setFilterMenu] = useState<"game" | "category" | "status" | null>(null);
+  const [gameFilter, setGameFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<NoticeStatus | "all">("all");
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -112,6 +113,10 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
     return () => window.clearInterval(timer);
   }, []);
 
+  const gameFilterOptions: FilterOption[] = games.map((game) => ({
+    label: game.name,
+    value: game.id
+  }));
   const categoryOptions = items.reduce<FilterOption[]>((options, notice) => {
     if (!options.some((option) => option.value === notice.category.id)) {
       options.push({
@@ -127,9 +132,10 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
     value: status
   }));
   const filteredItems = items.filter((notice) => {
+    const matchesGame = gameFilter === "all" || notice.gameId === gameFilter;
     const matchesCategory = categoryFilter === "all" || notice.category.id === categoryFilter;
     const matchesStatus = statusFilter === "all" || notice.status === statusFilter;
-    return matchesCategory && matchesStatus;
+    return matchesGame && matchesCategory && matchesStatus;
   });
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -143,7 +149,11 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [categoryFilter, statusFilter]);
+  }, [gameFilter, categoryFilter, statusFilter]);
+
+  useEffect(() => {
+    setGameFilter("all");
+  }, [currentGameId]);
 
   useEffect(() => {
     setPageInputValue(String(safePage));
@@ -325,11 +335,26 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
         <table className="w-full table-fixed border-collapse text-center text-sm">
           <thead className="sticky top-0 z-20 bg-slate-900 text-xs uppercase text-white shadow-sm">
             <tr>
-              <th className="w-[4%] rounded-tl-2xl px-2 py-3" />
-              <th className={`${showGameTitle ? "w-[13%]" : "w-[16%]"} px-3 py-3`}>{labels.title}</th>
               {showGameTitle ? (
-                <th className="w-[12%] px-3 py-3">{labels.gameTitle}</th>
+                <th className="w-[13%] rounded-tl-2xl px-3 py-3">
+                  <FilterHeader
+                    label={labels.gameTitle}
+                    active={gameFilter !== "all"}
+                    open={filterMenu === "game"}
+                    options={gameFilterOptions}
+                    selectedValue={gameFilter}
+                    allLabel={labels.allCategories}
+                    onToggle={() => setFilterMenu((current) => (current === "game" ? null : "game"))}
+                    onClose={() => setFilterMenu(null)}
+                    onSelect={(value) => {
+                      setGameFilter(value);
+                      setFilterMenu(null);
+                    }}
+                  />
+                </th>
               ) : null}
+              <th className={`${showGameTitle ? "w-[4%]" : "w-[4%] rounded-tl-2xl"} px-2 py-3`} />
+              <th className={`${showGameTitle ? "w-[13%]" : "w-[16%]"} px-3 py-3`}>{labels.title}</th>
               <th className={`${showGameTitle ? "w-[12%]" : "w-[14%]"} px-3 py-3`}>
                 <FilterHeader
                   label={labels.category}
@@ -425,6 +450,13 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
                     : ""
                 }`}
               >
+                {showGameTitle ? (
+                  <td className="px-4 py-4 font-bold text-slate-700">
+                    <span className="break-words">
+                      {gameNameById.get(notice.gameId) ?? notice.gameId}
+                    </span>
+                  </td>
+                ) : null}
                 <td className="relative px-3 py-4 text-center text-muted" data-row-action>
                   {dropHint?.id === notice.id ? (
                     <DropIndicator position={dropHint.position} />
@@ -452,13 +484,6 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
                 <td className={`px-4 py-4 text-center font-bold ${notice.status === "hidden" ? "text-slate-500" : "text-ink"}`}>
                   <span className="max-w-full break-words">{notice.title}</span>
                 </td>
-                {showGameTitle ? (
-                  <td className="px-4 py-4 font-bold text-slate-700">
-                    <span className="break-words">
-                      {gameNameById.get(notice.gameId) ?? notice.gameId}
-                    </span>
-                  </td>
-                ) : null}
                 <td className="px-4 py-4">
                   <CategoryBadge category={notice.category} />
                 </td>
