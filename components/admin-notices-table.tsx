@@ -21,14 +21,19 @@ const labels = {
   actions: "\u64cd\u4f5c",
   edit: "\u7de8\u96c6",
   hide: "\u975e\u8868\u793a",
+  show: "\u8868\u793a\u306b\u623b\u3059",
   delete: "\u524a\u9664",
   hideTitle: "\u304a\u77e5\u3089\u305b\u3092\u975e\u8868\u793a\u306b\u3057\u307e\u3059\u304b\uff1f",
   hideDescription:
     "\u975e\u8868\u793a\u306b\u3059\u308b\u3068\u30d5\u30ed\u30f3\u30c8\u5074\u306e\u304a\u77e5\u3089\u305b\u4e00\u89a7\u304b\u3089\u8868\u793a\u3055\u308c\u306a\u304f\u306a\u308a\u307e\u3059\u3002",
+  showTitle: "\u304a\u77e5\u3089\u305b\u3092\u8868\u793a\u306b\u623b\u3057\u307e\u3059\u304b\uff1f",
+  showDescription:
+    "\u8868\u793a\u306b\u623b\u3059\u3068\u3001\u516c\u958b\u65e5\u6642\u4ee5\u964d\u306b\u30d5\u30ed\u30f3\u30c8\u5074\u3078\u8868\u793a\u3055\u308c\u307e\u3059\u3002",
   deleteTitle: "\u304a\u77e5\u3089\u305b\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f",
   deleteDescription:
     "\u524a\u9664\u3059\u308b\u3068\u5fa9\u5143\u3067\u304d\u307e\u305b\u3093\u3002\u5fc5\u8981\u306a\u5834\u5408\u306f\u975e\u8868\u793a\u3092\u9078\u3093\u3067\u304f\u3060\u3055\u3044\u3002",
   hideConfirm: "\u975e\u8868\u793a\u306b\u3059\u308b",
+  showConfirm: "\u8868\u793a\u306b\u623b\u3059",
   deleteConfirm: "\u524a\u9664\u3059\u308b",
   statusTitle: "\u516c\u958b\u72b6\u614b\u3092\u5909\u66f4\u3057\u307e\u3059\u304b\uff1f",
   statusConfirm: "\u5909\u66f4\u3059\u308b",
@@ -183,6 +188,10 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
     setConfirmAction({ type: "status", notice, status });
   }
 
+  function getVisibilityToggleStatus(notice: NoticeWithCategory) {
+    return notice.status === "hidden" ? "published" : "hidden";
+  }
+
   async function updateNoticeStatus(notice: NoticeWithCategory, status: NoticeStatus) {
     const response = await fetch(`/api/admin/notices/${notice.id}`, {
       method: "PATCH",
@@ -224,8 +233,12 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
         setFeedbackMessage("\u516c\u958b\u72b6\u614b\u3092\u5909\u66f4\u3057\u307e\u3057\u305f\u3002");
       }
       if (confirmAction.type === "hide") {
-        await updateNoticeStatus(confirmAction.notice, "hidden");
-        setFeedbackMessage("\u304a\u77e5\u3089\u305b\u3092\u975e\u516c\u958b\u306b\u5909\u66f4\u3057\u307e\u3057\u305f\u3002");
+        await updateNoticeStatus(confirmAction.notice, confirmAction.status ?? "hidden");
+        setFeedbackMessage(
+          confirmAction.status === "published"
+            ? "\u304a\u77e5\u3089\u305b\u3092\u8868\u793a\u306b\u623b\u3057\u307e\u3057\u305f\u3002"
+            : "\u304a\u77e5\u3089\u305b\u3092\u975e\u516c\u958b\u306b\u5909\u66f4\u3057\u307e\u3057\u305f\u3002"
+        );
       }
       if (confirmAction.type === "delete") {
         await deleteNotice(confirmAction.notice);
@@ -390,10 +403,20 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
                       <Edit size={16} />
                     </Link>
                     <button
-                      onClick={() => setConfirmAction({ type: "hide", notice })}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-white text-muted hover:text-ink"
-                      aria-label={labels.hide}
-                      title={labels.hide}
+                      onClick={() =>
+                        setConfirmAction({
+                          type: "hide",
+                          notice,
+                          status: getVisibilityToggleStatus(notice)
+                        })
+                      }
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition ${
+                        notice.status === "hidden"
+                          ? "border-rose-200 bg-rose-50 text-rose-600 ring-1 ring-rose-200 hover:bg-rose-100"
+                          : "border-line bg-white text-muted hover:text-ink"
+                      }`}
+                      aria-label={notice.status === "hidden" ? labels.show : labels.hide}
+                      title={notice.status === "hidden" ? labels.show : labels.hide}
                     >
                       <EyeOff size={16} />
                     </button>
@@ -474,21 +497,27 @@ export function AdminNoticesTable({ notices, currentGameId }: AdminNoticesTableP
             ? labels.deleteTitle
             : confirmAction?.type === "status"
               ? labels.statusTitle
-              : labels.hideTitle
+              : confirmAction?.status === "published"
+                ? labels.showTitle
+                : labels.hideTitle
         }
         description={
           confirmAction?.type === "delete"
             ? labels.deleteDescription
             : confirmAction?.type === "status" && confirmAction.status
               ? `「${confirmAction.notice.title}」を「${statusLabels[confirmAction.status]}」に変更します。`
-              : labels.hideDescription
+              : confirmAction?.status === "published"
+                ? labels.showDescription
+                : labels.hideDescription
         }
         confirmLabel={
           confirmAction?.type === "delete"
             ? labels.deleteConfirm
             : confirmAction?.type === "status"
               ? labels.statusConfirm
-              : labels.hideConfirm
+              : confirmAction?.status === "published"
+                ? labels.showConfirm
+                : labels.hideConfirm
         }
         onCancel={() => setConfirmAction(null)}
         onConfirm={handleConfirmAction}
