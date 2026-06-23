@@ -48,6 +48,8 @@ const labels = {
   prevPage: "\u524d\u306e\u30da\u30fc\u30b8",
   nextPage: "\u6b21\u306e\u30da\u30fc\u30b8",
   pageStatus: "\u30da\u30fc\u30b8",
+  pageSize: "\u8868\u793a\u4ef6\u6570",
+  pageSizeUnit: "\u4ef6",
   jumpPage: "\u79fb\u52d5",
   pageInput: "\u30da\u30fc\u30b8\u756a\u53f7",
   allCategories: "\u3059\u3079\u3066",
@@ -67,7 +69,7 @@ const statusClasses = {
 };
 
 const statusOptions: NoticeStatus[] = ["draft", "published", "hidden"];
-const pageSize = 15;
+const pageSizeOptions = [15, 30, 50, 100];
 
 type AdminNoticesTableProps = {
   notices: NoticeWithCategory[];
@@ -99,6 +101,7 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
   const [statusFilter, setStatusFilter] = useState<NoticeStatus | "all">("all");
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(pageSizeOptions[0]);
   const [pageInputValue, setPageInputValue] = useState("1");
   const [confirmAction, setConfirmAction] = useState<null | {
     type: "hide" | "delete" | "status";
@@ -149,7 +152,7 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [gameFilter, categoryFilter, statusFilter]);
+  }, [pageSize, gameFilter, categoryFilter, statusFilter]);
 
   useEffect(() => {
     setGameFilter("all");
@@ -559,11 +562,26 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
           </tbody>
         </table>
       </div>
-      {totalPages > 1 ? (
-        <nav
-          className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-4"
-          aria-label="pagination"
-        >
+      <nav
+        className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-4"
+        aria-label="pagination"
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs font-black text-slate-600">
+            <span>{labels.pageSize}</span>
+            <select
+              value={pageSize}
+              onChange={(event) => setPageSize(Number(event.target.value))}
+              className="h-9 rounded-lg border border-line bg-white px-3 text-xs font-black text-ink outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                  {labels.pageSizeUnit}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
@@ -573,46 +591,46 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
             <ChevronLeft size={15} />
             {labels.prevPage}
           </button>
-          <form
-            className="flex flex-wrap items-center justify-center gap-2 text-xs font-black text-slate-600"
-            onSubmit={(event) => {
-              event.preventDefault();
-              jumpToPage();
-            }}
-          >
-            <span>
-              {labels.pageStatus} {safePage} / {totalPages}
-            </span>
-            <label className="sr-only" htmlFor="notice-page-input">
-              {labels.pageInput}
-            </label>
-            <input
-              id="notice-page-input"
-              type="number"
-              min={1}
-              max={totalPages}
-              value={pageInputValue}
-              onChange={(event) => setPageInputValue(event.target.value)}
-              className="h-9 w-20 rounded-lg border border-line bg-white px-3 text-center text-xs font-black text-ink outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
-            />
-            <button
-              type="submit"
-              className="inline-flex h-9 items-center justify-center rounded-lg bg-cyan-50 px-3 text-xs font-black text-cyan-700 shadow-sm transition hover:bg-cyan-100"
-            >
-              {labels.jumpPage}
-            </button>
-          </form>
+        </div>
+        <form
+          className="flex flex-wrap items-center justify-center gap-2 text-xs font-black text-slate-600"
+          onSubmit={(event) => {
+            event.preventDefault();
+            jumpToPage();
+          }}
+        >
+          <span>
+            {labels.pageStatus} {safePage} / {totalPages}
+          </span>
+          <label className="sr-only" htmlFor="notice-page-input">
+            {labels.pageInput}
+          </label>
+          <input
+            id="notice-page-input"
+            type="number"
+            min={1}
+            max={totalPages}
+            value={pageInputValue}
+            onChange={(event) => setPageInputValue(event.target.value)}
+            className="h-9 w-20 rounded-lg border border-line bg-white px-3 text-center text-xs font-black text-ink outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+          />
           <button
-            type="button"
-            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-            disabled={safePage === totalPages}
-            className="inline-flex h-9 items-center justify-center gap-1 rounded-lg bg-slate-50 px-3 text-xs font-black text-slate-700 shadow-sm transition hover:bg-cyan-50 hover:text-cyan-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-slate-50"
+            type="submit"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-cyan-50 px-3 text-xs font-black text-cyan-700 shadow-sm transition hover:bg-cyan-100"
           >
-            {labels.nextPage}
-            <ChevronRight size={15} />
+            {labels.jumpPage}
           </button>
-        </nav>
-      ) : null}
+        </form>
+        <button
+          type="button"
+          onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+          disabled={safePage === totalPages}
+          className="inline-flex h-9 items-center justify-center gap-1 rounded-lg bg-slate-50 px-3 text-xs font-black text-slate-700 shadow-sm transition hover:bg-cyan-50 hover:text-cyan-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-slate-50"
+        >
+          {labels.nextPage}
+          <ChevronRight size={15} />
+        </button>
+      </nav>
       <AdminConfirmDialog
         open={confirmAction !== null}
         tone={confirmAction?.type === "delete" ? "danger" : "warning"}
