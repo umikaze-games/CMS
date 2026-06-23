@@ -918,6 +918,10 @@ function closeFloatingMenusAfterPointerDefault(close: () => void) {
   window.setTimeout(close, 0);
 }
 
+function normalizeFontSize(value: string) {
+  return ["2", "3", "5", "7"].includes(value) ? value : "3";
+}
+
 type AdminRichTextEditorProps = {
   value: string;
   onChange: (value: string) => void;
@@ -939,6 +943,7 @@ export function AdminRichTextEditor({
   const lastExternalValue = useRef(value);
   const dragStartCellRef = useRef<HTMLTableCellElement | null>(null);
   const [textColor, setTextColor] = useState("#0f172a");
+  const [selectedFontSize, setSelectedFontSize] = useState("3");
   const [textCustomColor, setTextCustomColor] = useState("#0f172a");
   const [cellCustomColor, setCellCustomColor] = useState("#16a34a");
   const [showEmojiMenu, setShowEmojiMenu] = useState(false);
@@ -1066,6 +1071,7 @@ export function AdminRichTextEditor({
       return;
     }
 
+    setSelectedFontSize(normalizeFontSize(document.queryCommandValue("fontSize")));
     setActiveFormats({
       bold: document.queryCommandState("bold"),
       strikeThrough: document.queryCommandState("strikeThrough"),
@@ -1099,6 +1105,11 @@ export function AdminRichTextEditor({
     }
     saveSelection();
     syncValue();
+    updateToolbarState();
+  }
+
+  function handleFontSizeMouseDown() {
+    saveSelection();
     updateToolbarState();
   }
 
@@ -1498,10 +1509,13 @@ export function AdminRichTextEditor({
             <Type size={16} />
             <select
               aria-label={labels.size}
-              onMouseDown={saveSelection}
-              onChange={(event) => runCommand("fontSize", event.target.value)}
+              onMouseDown={handleFontSizeMouseDown}
+              onChange={(event) => {
+                setSelectedFontSize(event.target.value);
+                runCommand("fontSize", event.target.value);
+              }}
               className="bg-transparent text-xs font-black outline-none"
-              defaultValue="3"
+              value={selectedFontSize}
             >
               <option value="2">小</option>
               <option value="3">中</option>

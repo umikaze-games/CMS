@@ -13,9 +13,21 @@ test("rich text toolbar gives bold a visible active state", () => {
 
 test("rich text editor defaults to medium regular text", () => {
   assert.match(source, /bold: false/);
-  assert.match(source, /defaultValue="3"/);
+  assert.match(source, /const \[selectedFontSize, setSelectedFontSize\] = useState\("3"\)/);
+  assert.match(source, /value=\{selectedFontSize\}/);
   assert.match(source, /className="notice-editor[\s\S]*text-base font-normal/);
   assert.doesNotMatch(source, /className="notice-editor[\s\S]*text-sm font-bold/);
+});
+
+test("rich text font size picker syncs selected text size before opening", () => {
+  assert.match(source, /function normalizeFontSize\(value: string\)/);
+  assert.match(source, /\["2", "3", "5", "7"\]\.includes\(value\) \? value : "3"/);
+  assert.match(source, /document\.queryCommandValue\("fontSize"\)/);
+  assert.match(source, /setSelectedFontSize\(normalizeFontSize\(document\.queryCommandValue\("fontSize"\)\)\)/);
+  assert.match(source, /function handleFontSizeMouseDown\(\) \{\s*saveSelection\(\);\s*updateToolbarState\(\);\s*\}/);
+  assert.match(source, /onMouseDown=\{handleFontSizeMouseDown\}/);
+  assert.match(source, /onChange=\{\(event\) => \{\s*setSelectedFontSize\(event\.target\.value\);\s*runCommand\("fontSize", event\.target\.value\);\s*\}\}/);
+  assert.doesNotMatch(source, /defaultValue="3"/);
 });
 
 test("rich text toolbar keeps selected text active after applying text effects", () => {
