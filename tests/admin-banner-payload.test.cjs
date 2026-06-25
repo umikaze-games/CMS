@@ -31,10 +31,23 @@ test("banner upload area shows the current image size limit", () => {
   const source = readFileSync("components/admin-notice-form.tsx", "utf8");
 
   assert.match(source, /bannerHelp: "10MB\\u4ee5\\u4e0b/);
-  assert.match(source, /\\u30a2\\u30c3\\u30d7\\u30ed\\u30fc\\u30c9\\u63a8\\u5968\\u30b5\\u30a4\\u30ba\\uff1a1100\\u00d7420px\\u4ee5\\u4e0a/);
+  assert.match(source, /\\u30a2\\u30c3\\u30d7\\u30ed\\u30fc\\u30c9\\u63a8\\u5968\\u30b5\\u30a4\\u30ba\\uff1a1280\\u00d7720px\\u4ee5\\u4e0a/);
+  assert.match(source, /\\u6bd4\\u738716\\uff1a9/);
   assert.match(source, /\{labels\.bannerHelp\}/);
   assert.doesNotMatch(source, /bannerMainSize/);
   assert.doesNotMatch(source, /bannerDetailSize/);
+});
+
+test("banner upload preview matches the public notice list thumbnail crop", () => {
+  const formSource = readFileSync("components/admin-notice-form.tsx", "utf8");
+  const cardSource = readFileSync("components/notice-card.tsx", "utf8");
+
+  assert.match(cardSource, /md:grid-cols-\[220px_1fr\]/);
+  assert.match(cardSource, /aspect-video/);
+  assert.match(cardSource, /className="object-cover saturate-125/);
+  assert.match(formSource, /aspect-video/);
+  assert.match(formSource, /max-w-\[220px\]/);
+  assert.match(formSource, /className="absolute inset-0 h-full w-full object-cover saturate-125/);
 });
 
 test("banner selection can be cancelled back to the category default banner", () => {

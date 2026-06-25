@@ -27,7 +27,7 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
       className="group relative grid overflow-hidden rounded-lg border border-transparent bg-white shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_18px_44px_rgba(8,145,178,0.14)] md:grid-cols-[220px_1fr]"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-      <div className="relative h-32 overflow-hidden bg-slate-100 md:h-full md:min-h-32">
+      <div className="relative aspect-video overflow-hidden bg-slate-100">
         <Image
           src={bannerImage}
           alt=""

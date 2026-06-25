@@ -37,7 +37,7 @@ const labels = {
   hidden: "\u975e\u516c\u958b",
   banner: "\u753b\u50cf\u30d0\u30ca\u30fc",
   upload: "\u30af\u30ea\u30c3\u30af\u3057\u3066\u753b\u50cf\u3092\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9",
-  bannerHelp: "10MB\u4ee5\u4e0b\u3002\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u63a8\u5968\u30b5\u30a4\u30ba\uff1a1100\u00d7420px\u4ee5\u4e0a\uff08\u6a2a\u9577\uff09",
+  bannerHelp: "10MB\u4ee5\u4e0b\u3002\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u63a8\u5968\u30b5\u30a4\u30ba\uff1a1280\u00d7720px\u4ee5\u4e0a\uff08\u6bd4\u738716\uff1a9\uff09",
   cancelBanner: "\u9078\u629e\u3092\u30ad\u30e3\u30f3\u30bb\u30eb",
   uploaded: "\u753b\u50cf\u9078\u629e\u6e08\u307f",
   defaultBanner: "\u30ab\u30c6\u30b4\u30ea\u30fc\u65e2\u5b9a\u753b\u50cf",
@@ -446,21 +446,21 @@ export function AdminNoticeForm({
         </label>
         <label
           htmlFor="banner"
-          className="relative flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-slate-300 bg-[linear-gradient(135deg,#f8fafc,#eef6f2)] px-4 py-5 text-center text-sm font-semibold text-muted transition hover:border-ink hover:bg-white"
+          className="relative flex aspect-video w-full max-w-[220px] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-slate-300 bg-[linear-gradient(135deg,#f8fafc,#eef6f2)] px-3 py-3 text-center text-sm font-semibold text-muted transition hover:border-ink hover:bg-white"
         >
           {bannerPreview ? (
             <>
               <img
                 src={bannerPreview}
                 alt=""
-                className="absolute inset-0 h-full w-full object-cover opacity-85"
+                className="absolute inset-0 h-full w-full object-cover saturate-125"
               />
-              <div className="absolute inset-0 bg-slate-950/35" />
-              <div className="relative z-10 inline-flex max-w-[calc(100%-4rem)] flex-col items-center gap-1 rounded-xl bg-slate-950/85 px-4 py-2 text-white shadow-[0_12px_30px_rgba(15,23,42,0.22)] backdrop-blur">
-                <span className="text-sm font-black text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-transparent" />
+              <div className="absolute inset-x-2 bottom-2 z-10 inline-flex min-w-0 flex-col items-center gap-0.5 rounded-lg bg-slate-950/85 px-2 py-1.5 text-white shadow-[0_8px_18px_rgba(15,23,42,0.18)] backdrop-blur">
+                <span className="text-xs font-black text-white">
                   {usesDefaultBanner ? labels.defaultBanner : labels.uploaded}
                 </span>
-                <span className="max-w-[720px] truncate text-xs font-bold text-slate-200">
+                <span className="max-w-full truncate text-[10px] font-bold text-slate-200">
                   {bannerFileName ?? bannerPreview}
                 </span>
               </div>
