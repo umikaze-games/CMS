@@ -72,6 +72,19 @@ textarea {
   object-fit: contain;
 }
 
+.notice-rich-body img.twemoji,
+.twemoji {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  max-width: 1.15em;
+  max-height: 1.15em;
+  margin: 0 0.05em;
+  border-radius: 0;
+  vertical-align: -0.18em;
+  object-fit: contain;
+}
+
 .notice-table-scroll {
   display: block;
   min-width: 220px;

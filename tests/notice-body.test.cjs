@@ -41,7 +41,35 @@ test("legacy markdown image attributes are escaped before rich HTML rendering", 
   );
 });
 
+test("front notice rich body renders emoji with Twemoji assets", () => {
+  const { NoticeBody } = loadNoticeBody();
+  const element = NoticeBody({
+    body: "<p>OK 😀</p>"
+  });
+
+  assert.match(
+    element.props.dangerouslySetInnerHTML.__html,
+    /<img class="twemoji" alt="😀" src="https:\/\/cdn\.jsdelivr\.net\/gh\/jdecked\/twemoji@16\.0\.1\/assets\/svg\/1f600\.svg">/
+  );
+});
+
+test("front notice rich body keeps existing HTML entities while rendering emoji", () => {
+  const { NoticeBody } = loadNoticeBody();
+  const element = NoticeBody({
+    body: "<p>A&nbsp;B 😀</p>"
+  });
+
+  assert.match(element.props.dangerouslySetInnerHTML.__html, /A&nbsp;B/);
+  assert.doesNotMatch(element.props.dangerouslySetInnerHTML.__html, /&amp;nbsp;/);
+});
+
 test("front notice rich body preserves bold text styling", () => {
   assert.match(globalCss, /\.notice-rich-body\s+(?:b|strong)/);
   assert.match(globalCss, /font-weight:\s*(?:700|800|900|bold)/);
+});
+
+test("front Twemoji images align with text instead of using notice image sizing", () => {
+  assert.match(globalCss, /\.twemoji/);
+  assert.match(globalCss, /height:\s*1\.15em/);
+  assert.match(globalCss, /vertical-align:\s*-0\.18em/);
 });
