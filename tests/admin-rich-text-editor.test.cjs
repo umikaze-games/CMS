@@ -215,6 +215,14 @@ test("rich text pasted HTML strips external font styles before insertion", () =>
   assert.match(source, /runCommand\("insertHTML", sanitizePastedHtml\(html\), true\)/);
 });
 
+test("rich text pasted HTML strips external text colors and highlights", () => {
+  assert.match(source, /style\.removeProperty\("color"\)/);
+  assert.match(source, /style\.removeProperty\("background-color"\)/);
+  assert.match(source, /style\.removeProperty\("background"\)/);
+  assert.match(source, /element\.removeAttribute\("color"\)/);
+  assert.match(source, /element\.removeAttribute\("bgcolor"\)/);
+});
+
 test("notice form does not wrap the rich text editor in a label", () => {
   assert.doesNotMatch(
     formSource,

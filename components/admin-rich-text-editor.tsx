@@ -1822,6 +1822,13 @@ function sanitizePastedHtml(html: string) {
     style.removeProperty("font-size");
     style.removeProperty("line-height");
     style.removeProperty("letter-spacing");
+    style.removeProperty("color");
+    style.removeProperty("background");
+    style.removeProperty("background-color");
+    style.removeProperty("background-image");
+    style.removeProperty("-webkit-text-fill-color");
+    style.removeProperty("text-decoration-color");
+    style.removeProperty("mso-highlight");
     style.removeProperty("mso-fareast-font-family");
     style.removeProperty("mso-bidi-font-family");
     style.removeProperty("mso-ascii-font-family");
@@ -1831,6 +1838,12 @@ function sanitizePastedHtml(html: string) {
     element.removeAttribute("id");
     element.removeAttribute("face");
     element.removeAttribute("size");
+    element.removeAttribute("color");
+    element.removeAttribute("bgcolor");
+
+    if (!style.cssText) {
+      element.removeAttribute("style");
+    }
   });
 
   return documentForParsing.body.innerHTML || plainTextToHtml(documentForParsing.body.textContent ?? "");
