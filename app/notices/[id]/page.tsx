@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import { CategoryBadge } from "@/components/category-badge";
 import { NoticeBody } from "@/components/notice-body";
@@ -10,6 +9,10 @@ import { isLocalNoticeUploadUrl } from "@/lib/local-upload-path";
 import { getNoticeById } from "@/lib/notices";
 
 const backLabel = "\u304a\u77e5\u3089\u305b\u4e00\u89a7\u3078\u623b\u308b";
+const noticeTopLabel = "\u304a\u77e5\u3089\u305b\u30c8\u30c3\u30d7\u306b\u623b\u308b";
+const unavailableTitle = "\u3053\u306e\u304a\u77e5\u3089\u305b\u306f\u73fe\u5728\u8868\u793a\u3067\u304d\u307e\u305b\u3093";
+const unavailableBody =
+  "\u516c\u958b\u304c\u7d42\u4e86\u3057\u305f\u304b\u3001\u73fe\u5728\u975e\u8868\u793a\u306b\u8a2d\u5b9a\u3055\u308c\u3066\u3044\u307e\u3059\u3002";
 const publishedLabel = "\u516c\u958b\u65e5";
 const updatedLabel = "\u66f4\u65b0\u65e5";
 
@@ -24,7 +27,7 @@ export default async function NoticeDetailPage({ params }: NoticeDetailPageProps
   const notice = await getNoticeById(id);
 
   if (!notice || notice.status !== "published") {
-    notFound();
+    return <UnavailableNotice />;
   }
 
   const bannerImage = getNoticeBannerImage(notice);
@@ -102,5 +105,28 @@ export default async function NoticeDetailPage({ params }: NoticeDetailPageProps
         </section>
       </main>
     </>
+  );
+}
+
+function UnavailableNotice() {
+  return (
+    <main className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-5 py-16">
+      <section className="w-full rounded-lg border border-slate-200 bg-white p-8 text-center shadow-[0_24px_60px_rgba(15,23,42,0.10)]">
+        <p className="mb-3 text-sm font-black uppercase tracking-normal text-cyan-700">NEWS</p>
+        <h1 className="text-2xl font-black leading-tight text-slate-950 md:text-3xl">
+          {unavailableTitle}
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-slate-600">
+          {unavailableBody}
+        </p>
+        <Link
+          href="/notices"
+          className="mt-7 inline-flex items-center gap-2 rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)] hover:bg-cyan-700"
+        >
+          <ArrowLeft size={18} />
+          {noticeTopLabel}
+        </Link>
+      </section>
+    </main>
   );
 }
