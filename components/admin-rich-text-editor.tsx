@@ -1346,13 +1346,24 @@ export function AdminRichTextEditor({
     const image = Array.from(event.clipboardData.files).find((file) =>
       file.type.startsWith("image/")
     );
-    if (!image) {
-      return;
-    }
+    const html = event.clipboardData.getData("text/html");
+    const text = event.clipboardData.getData("text/plain");
 
     event.preventDefault();
     setShowEmojiMenu(false);
-    await insertImageFile(image);
+    if (image) {
+      await insertImageFile(image);
+      return;
+    }
+
+    if (html) {
+      runCommand("insertHTML", sanitizePastedHtml(html), true);
+      return;
+    }
+
+    if (text) {
+      runCommand("insertHTML", plainTextToHtml(text), true);
+    }
   }
 
   return (
@@ -1787,6 +1798,42 @@ function escapeHtml(value: string) {
 
 function escapeAttribute(value: string) {
   return escapeHtml(value);
+}
+
+function plainTextToHtml(text: string) {
+  return escapeHtml(text)
+    .split(/\r?\n/)
+    .map((line) => (line ? line : "<br>"))
+    .join("<br>");
+}
+
+function sanitizePastedHtml(html: string) {
+  const documentForParsing = new DOMParser().parseFromString(html, "text/html");
+
+  documentForParsing
+    .querySelectorAll("script, style, meta, link, title, object, iframe")
+    .forEach((element) => element.remove());
+
+  documentForParsing.body.querySelectorAll("*").forEach((element) => {
+    const htmlElement = element as HTMLElement;
+    const style = htmlElement.style;
+
+    style.removeProperty("font-family");
+    style.removeProperty("font-size");
+    style.removeProperty("line-height");
+    style.removeProperty("letter-spacing");
+    style.removeProperty("mso-fareast-font-family");
+    style.removeProperty("mso-bidi-font-family");
+    style.removeProperty("mso-ascii-font-family");
+    style.removeProperty("mso-hansi-font-family");
+
+    element.removeAttribute("class");
+    element.removeAttribute("id");
+    element.removeAttribute("face");
+    element.removeAttribute("size");
+  });
+
+  return documentForParsing.body.innerHTML || plainTextToHtml(documentForParsing.body.textContent ?? "");
 }
 
 function clampNumber(value: number, min: number, max: number) {

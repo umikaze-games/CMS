@@ -207,6 +207,14 @@ test("rich text image insertion uploads images instead of embedding base64", () 
   assert.doesNotMatch(source, /readAsDataURL/);
 });
 
+test("rich text pasted HTML strips external font styles before insertion", () => {
+  assert.match(source, /function sanitizePastedHtml\(html: string\)/);
+  assert.match(source, /style\.removeProperty\("font-family"\)/);
+  assert.match(source, /style\.removeProperty\("font-size"\)/);
+  assert.match(source, /event\.clipboardData\.getData\("text\/html"\)/);
+  assert.match(source, /runCommand\("insertHTML", sanitizePastedHtml\(html\), true\)/);
+});
+
 test("notice form does not wrap the rich text editor in a label", () => {
   assert.doesNotMatch(
     formSource,
