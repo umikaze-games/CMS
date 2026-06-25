@@ -78,7 +78,7 @@ export default async function NoticeDetailPage({ params }: NoticeDetailPageProps
 
         <section className="mx-auto max-w-6xl px-5 py-5 md:py-6">
           <article className="overflow-hidden rounded-lg border border-slate-200 bg-white/92 shadow-[0_24px_60px_rgba(15,23,42,0.10)] backdrop-blur">
-            <div className="relative h-60 border-b border-slate-200 bg-slate-100 md:h-[420px]">
+            <div className="relative aspect-video border-b border-slate-200 bg-slate-100">
               <Image
                 src={bannerImage}
                 alt=""
