@@ -37,9 +37,7 @@ const labels = {
   hidden: "\u975e\u516c\u958b",
   banner: "\u753b\u50cf\u30d0\u30ca\u30fc",
   upload: "\u30af\u30ea\u30c3\u30af\u3057\u3066\u753b\u50cf\u3092\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9",
-  bannerHelp: "10MB\u4ee5\u4e0b\u3002\u63a8\u5968\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\uff1a1100\u00d7420px\u4ee5\u4e0a\uff08\u6a2a\u9577\uff09",
-  bannerMainSize: "\u304a\u77e5\u3089\u305b\u30e1\u30a4\u30f3\u753b\u9762\uff1a220\u00d7128px",
-  bannerDetailSize: "\u8a73\u7d30\u30da\u30fc\u30b8\uff1a\u7d041100\u00d7420px",
+  bannerHelp: "10MB\u4ee5\u4e0b\u3002\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u63a8\u5968\u30b5\u30a4\u30ba\uff1a1100\u00d7420px\u4ee5\u4e0a\uff08\u6a2a\u9577\uff09",
   cancelBanner: "\u9078\u629e\u3092\u30ad\u30e3\u30f3\u30bb\u30eb",
   uploaded: "\u753b\u50cf\u9078\u629e\u6e08\u307f",
   defaultBanner: "\u30ab\u30c6\u30b4\u30ea\u30fc\u65e2\u5b9a\u753b\u50cf",
@@ -489,8 +487,6 @@ export function AdminNoticeForm({
         </label>
         <div className="grid gap-1 rounded-lg bg-cyan-50 px-3 py-2 text-xs font-bold leading-5 text-slate-600">
           <span>{labels.bannerHelp}</span>
-          <span>{labels.bannerMainSize}</span>
-          <span>{labels.bannerDetailSize}</span>
         </div>
         <input
           ref={bannerInputRef}

@@ -31,11 +31,10 @@ test("banner upload area shows the current image size limit", () => {
   const source = readFileSync("components/admin-notice-form.tsx", "utf8");
 
   assert.match(source, /bannerHelp: "10MB\\u4ee5\\u4e0b/);
-  assert.match(source, /bannerMainSize: "\\u304a\\u77e5\\u3089\\u305b\\u30e1\\u30a4\\u30f3\\u753b\\u9762\\uff1a220\\u00d7128px"/);
-  assert.match(source, /bannerDetailSize: "\\u8a73\\u7d30\\u30da\\u30fc\\u30b8\\uff1a\\u7d041100\\u00d7420px"/);
+  assert.match(source, /\\u30a2\\u30c3\\u30d7\\u30ed\\u30fc\\u30c9\\u63a8\\u5968\\u30b5\\u30a4\\u30ba\\uff1a1100\\u00d7420px\\u4ee5\\u4e0a/);
   assert.match(source, /\{labels\.bannerHelp\}/);
-  assert.match(source, /\{labels\.bannerMainSize\}/);
-  assert.match(source, /\{labels\.bannerDetailSize\}/);
+  assert.doesNotMatch(source, /bannerMainSize/);
+  assert.doesNotMatch(source, /bannerDetailSize/);
 });
 
 test("banner selection can be cancelled back to the category default banner", () => {
