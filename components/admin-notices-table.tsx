@@ -43,7 +43,8 @@ const labels = {
   orderSaved: "\u8868\u793a\u9806\u3092\u4fdd\u5b58\u3057\u307e\u3057\u305f\u3002",
   orderError: "\u8868\u793a\u9806\u306e\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
   pinnedLocked: "TOP\u56fa\u5b9a\u4e2d",
-  insertHere: "\u3053\u3053\u306b\u633f\u5165",
+  dragHandle: "\u8868\u793a\u9806\u3092\u5909\u66f4",
+  moveHere: "\u3053\u3053\u3078\u79fb\u52d5",
   dragging: "\u79fb\u52d5\u4e2d",
   prevPage: "\u524d\u306e\u30da\u30fc\u30b8",
   nextPage: "\u6b21\u306e\u30da\u30fc\u30b8",
@@ -236,6 +237,17 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
     }
   }
 
+  function handleDragStart(event: React.DragEvent<HTMLElement>, notice: NoticeWithCategory) {
+    if (notice.isPinned) {
+      event.preventDefault();
+      return;
+    }
+
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", notice.id);
+    setDraggingId(notice.id);
+  }
+
   function updateDropHint(event: React.DragEvent<HTMLTableRowElement>, id: string) {
     const targetNotice = items.find((item) => item.id === id);
     const sourceNotice = draggingId ? items.find((item) => item.id === draggingId) : null;
@@ -404,19 +416,9 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
                 role="link"
                 tabIndex={0}
                 aria-label={`${showGameTitle ? `${gameNameById.get(notice.gameId) ?? notice.gameId} ` : ""}${notice.title} ${labels.edit}`}
-                draggable={!notice.isPinned}
+                draggable={false}
                 onClick={(event) => handleRowClick(event, notice)}
                 onKeyDown={(event) => handleRowKeyDown(event, notice)}
-                onDragStart={(event) => {
-                  if (notice.isPinned) {
-                    event.preventDefault();
-                    return;
-                  }
-
-                  event.dataTransfer.effectAllowed = "move";
-                  event.dataTransfer.setData("text/plain", notice.id);
-                  setDraggingId(notice.id);
-                }}
                 onDragEnd={clearDragState}
                 onDragOver={(event) => updateDropHint(event, notice.id)}
                 onDragLeave={(event) => {
@@ -474,8 +476,13 @@ export function AdminNoticesTable({ notices, currentGameId, games }: AdminNotice
                     </span>
                   ) : (
                     <span
+                      draggable={!notice.isPinned}
+                      onDragStart={(event) => handleDragStart(event, notice)}
+                      onDragEnd={clearDragState}
                       className="inline-flex cursor-grab items-center gap-1 rounded-md px-1 py-1 active:cursor-grabbing"
                       data-row-action
+                      title={labels.dragHandle}
+                      aria-label={labels.dragHandle}
                     >
                       <GripVertical size={18} />
                       {draggingId === notice.id ? (
@@ -888,7 +895,7 @@ function DropIndicator({ position }: { position: "before" | "after" }) {
       }`}
     >
       <span className="rounded-full bg-cyan-600 px-2.5 py-1 text-[11px] font-black text-white shadow-[0_8px_18px_rgba(8,145,178,0.25)]">
-        {labels.insertHere}
+        {labels.moveHere}
       </span>
     </div>
   );

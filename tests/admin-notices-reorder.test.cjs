@@ -9,6 +9,14 @@ function readRepoFile(...parts) {
   return readFileSync(join(repoRoot, ...parts), "utf8");
 }
 
+function getNoticeRowOpeningSource(tableSource) {
+  const rowStart = tableSource.indexOf('<tr\n                key={notice.id}');
+  const rowEnd = tableSource.indexOf("{showGameTitle ? (", rowStart);
+  assert.notEqual(rowStart, -1);
+  assert.notEqual(rowEnd, -1);
+  return tableSource.slice(rowStart, rowEnd);
+}
+
 test("admin notice drag reorder is persisted through the reorder API", () => {
   const tableSource = readRepoFile("components", "admin-notices-table.tsx");
 
@@ -21,10 +29,31 @@ test("admin notice drag reorder is persisted through the reorder API", () => {
 test("pinned TOP notices cannot be dragged or used as drop targets", () => {
   const tableSource = readRepoFile("components", "admin-notices-table.tsx");
 
+  assert.match(tableSource, /draggable=\{false\}/);
   assert.match(tableSource, /draggable=\{!notice\.isPinned\}/);
-  assert.match(tableSource, /if \(notice\.isPinned\) \{\s*event\.preventDefault\(\);\s*return;/);
+  assert.match(tableSource, /function handleDragStart/);
   assert.match(tableSource, /targetNotice\?\.isPinned/);
   assert.match(tableSource, /cursor-not-allowed/);
+});
+
+test("admin notice reorder can only be started from the drag handle", () => {
+  const tableSource = readRepoFile("components", "admin-notices-table.tsx");
+  const noticeRowSource = getNoticeRowOpeningSource(tableSource);
+
+  assert.match(tableSource, /function handleDragStart/);
+  assert.match(noticeRowSource, /draggable=\{false\}/);
+  assert.doesNotMatch(noticeRowSource, /onDragStart=/);
+  assert.match(tableSource, /draggable=\{!notice\.isPinned\}/);
+  assert.match(tableSource, /onDragStart=\{\(event\) => handleDragStart\(event, notice\)\}/);
+  assert.match(tableSource, /title=\{labels\.dragHandle\}/);
+});
+
+test("admin notice reorder drop hint describes moving order", () => {
+  const tableSource = readRepoFile("components", "admin-notices-table.tsx");
+
+  assert.match(tableSource, /moveHere: "\\u3053\\u3053\\u3078\\u79fb\\u52d5"/);
+  assert.doesNotMatch(tableSource, /insertHere/);
+  assert.match(tableSource, /\{labels\.moveHere\}/);
 });
 
 test("admin and public notice reads use persisted sort order", () => {
