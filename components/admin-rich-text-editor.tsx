@@ -1357,7 +1357,7 @@ export function AdminRichTextEditor({
 
   return (
     <div className="grid gap-2">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="sticky top-3 z-30 flex flex-wrap items-center gap-2 rounded-xl bg-white/90 py-1 backdrop-blur">
         <div className="relative ml-auto flex flex-wrap items-center justify-end gap-1 rounded-xl border border-slate-200 bg-white px-2 py-1 shadow-sm">
           <div ref={emojiMenuRef} className="relative">
             <ToolButton label={labels.emoji} active={showEmojiMenu} onClick={openEmojiPicker}>

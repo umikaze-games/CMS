@@ -73,6 +73,11 @@ test("rich text emoji and image tools sit inside the right toolbar", () => {
   assert.doesNotMatch(source, /gap-1 rounded-full bg-indigo-50 px-2\.5 py-1/);
 });
 
+test("rich text toolbar stays visible while editing long notices", () => {
+  assert.match(source, /className="sticky top-3 z-30 flex flex-wrap items-center gap-2/);
+  assert.match(source, /backdrop-blur/);
+});
+
 test("rich text emoji picker does not toggle closed from the opener", () => {
   assert.match(source, /function openEmojiPicker\(\)/);
   assert.match(source, /setShowEmojiMenu\(true\)/);
