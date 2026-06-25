@@ -43,13 +43,13 @@ test("banner upload preview matches the public notice list thumbnail crop", () =
   const cardSource = readFileSync("components/notice-card.tsx", "utf8");
   const detailSource = readFileSync("app/notices/[id]/page.tsx", "utf8");
 
-  assert.match(cardSource, /md:grid-cols-\[220px_1fr\]/);
+  assert.match(cardSource, /md:grid-cols-\[284px_1fr\]/);
   assert.match(cardSource, /aspect-video/);
   assert.match(cardSource, /className="object-cover saturate-125/);
   assert.match(detailSource, /aspect-video/);
   assert.doesNotMatch(detailSource, /md:h-\[420px\]/);
   assert.match(formSource, /aspect-video/);
-  assert.match(formSource, /max-w-\[220px\]/);
+  assert.match(formSource, /max-w-\[284px\]/);
   assert.match(formSource, /className="absolute inset-0 h-full w-full object-cover saturate-125/);
 });
 

@@ -24,15 +24,15 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
   return (
     <Link
       href={`/notices/${notice.id}`}
-      className="group relative grid overflow-hidden rounded-lg border border-transparent bg-white shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_18px_44px_rgba(8,145,178,0.14)] md:h-40 md:grid-cols-[220px_1fr]"
+      className="group relative grid overflow-hidden rounded-lg border border-transparent bg-white shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_18px_44px_rgba(8,145,178,0.14)] md:h-40 md:grid-cols-[284px_1fr]"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-      <div className="relative aspect-video overflow-hidden bg-slate-100 md:h-full md:aspect-auto">
+      <div className="relative aspect-video overflow-hidden bg-slate-100 md:h-full">
         <Image
           src={bannerImage}
           alt=""
           fill
-          sizes="(min-width: 768px) 220px, 100vw"
+          sizes="(min-width: 768px) 284px, 100vw"
           unoptimized={isLocalNoticeUploadUrl(bannerImage) || isDefaultNoticeBannerUrl(bannerImage)}
           className="object-cover saturate-125 transition duration-700 group-hover:scale-105"
         />

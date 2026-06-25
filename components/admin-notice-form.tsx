@@ -446,7 +446,7 @@ export function AdminNoticeForm({
         </label>
         <label
           htmlFor="banner"
-          className="relative flex aspect-video w-full max-w-[220px] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-slate-300 bg-[linear-gradient(135deg,#f8fafc,#eef6f2)] px-3 py-3 text-center text-sm font-semibold text-muted transition hover:border-ink hover:bg-white"
+          className="relative flex aspect-video w-full max-w-[284px] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-slate-300 bg-[linear-gradient(135deg,#f8fafc,#eef6f2)] px-3 py-3 text-center text-sm font-semibold text-muted transition hover:border-ink hover:bg-white"
         >
           {bannerPreview ? (
             <>
