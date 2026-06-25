@@ -24,10 +24,10 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
   return (
     <Link
       href={`/notices/${notice.id}`}
-      className="group relative grid overflow-hidden rounded-lg border border-transparent bg-white shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_18px_44px_rgba(8,145,178,0.14)] md:grid-cols-[220px_1fr]"
+      className="group relative grid overflow-hidden rounded-lg border border-transparent bg-white shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_18px_44px_rgba(8,145,178,0.14)] md:h-40 md:grid-cols-[220px_1fr]"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-      <div className="relative aspect-video overflow-hidden bg-slate-100">
+      <div className="relative aspect-video overflow-hidden bg-slate-100 md:h-full md:aspect-auto">
         <Image
           src={bannerImage}
           alt=""
@@ -39,8 +39,8 @@ export function NoticeCard({ notice, featured = false, isNew = false }: NoticeCa
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-transparent" />
       </div>
 
-      <div className="grid h-full min-w-0 gap-2 px-4 py-3 md:grid-cols-[1fr_220px] md:grid-rows-[auto_1fr_auto] md:gap-x-5 md:px-5 md:py-3">
-        <div className="min-w-0 md:row-span-3">
+      <div className="grid h-full min-w-0 gap-2 overflow-hidden px-4 py-3 md:grid-cols-[1fr_220px] md:grid-rows-[auto_1fr_auto] md:gap-x-5 md:px-5 md:py-3">
+        <div className="min-w-0 overflow-hidden md:row-span-3">
           <div className="mb-1.5 flex flex-wrap items-center gap-2">
             <CategoryBadge category={notice.category} isPinned={notice.isPinned} />
             {isNew ? (
