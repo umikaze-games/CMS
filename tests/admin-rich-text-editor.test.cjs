@@ -223,6 +223,13 @@ test("rich text pasted HTML strips external text colors and highlights", () => {
   assert.match(source, /element\.removeAttribute\("bgcolor"\)/);
 });
 
+test("rich text pasted HTML converts external emoji images to emoji text", () => {
+  assert.match(source, /function replacePastedEmojiImages/);
+  assert.match(source, /emojiAltPattern\.test\(alt\)/);
+  assert.match(source, /documentForParsing\.createTextNode\(alt\)/);
+  assert.match(source, /replacePastedEmojiImages\(documentForParsing\)/);
+});
+
 test("notice form does not wrap the rich text editor in a label", () => {
   assert.doesNotMatch(
     formSource,

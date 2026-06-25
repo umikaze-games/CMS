@@ -64,6 +64,8 @@ const themeColorColumns = [
   ["#eadcf8", "#d5a6f2", "#b565d9", "#8e24aa", "#6a1b9a", "#4a148c"]
 ];
 
+const emojiAltPattern = /[\p{Extended_Pictographic}\u{1f1e6}-\u{1f1ff}\ufe0f]/u;
+
 const emojiGroups = [
   {
     label: "顔",
@@ -1814,6 +1816,8 @@ function sanitizePastedHtml(html: string) {
     .querySelectorAll("script, style, meta, link, title, object, iframe")
     .forEach((element) => element.remove());
 
+  replacePastedEmojiImages(documentForParsing);
+
   documentForParsing.body.querySelectorAll("*").forEach((element) => {
     const htmlElement = element as HTMLElement;
     const style = htmlElement.style;
@@ -1847,6 +1851,15 @@ function sanitizePastedHtml(html: string) {
   });
 
   return documentForParsing.body.innerHTML || plainTextToHtml(documentForParsing.body.textContent ?? "");
+}
+
+function replacePastedEmojiImages(documentForParsing: Document) {
+  documentForParsing.body.querySelectorAll("img").forEach((image) => {
+    const alt = image.getAttribute("alt")?.trim() ?? "";
+    if (alt && emojiAltPattern.test(alt)) {
+      image.replaceWith(documentForParsing.createTextNode(alt));
+    }
+  });
 }
 
 function clampNumber(value: number, min: number, max: number) {
